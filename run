@@ -1,0 +1,14 @@
+#!/bin/bash
+sudo rm -rf build
+
+echo "*** Compiling ***"
+mkdir build
+cd build
+cmake ..
+make 
+
+echo "*** Generating Image ***"
+cd ..
+./objcopy
+
+qemu-system-aarch64 -M virt,gic-version=2 -cpu cortex-a57 -m 4096 -serial stdio -kernel build/mos_qemu.img -display none -smp 1
