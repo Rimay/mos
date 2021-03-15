@@ -62,19 +62,16 @@ int env_alloc(struct Env **newenv, u_int parent_id) {
     int r;
     struct Page *p = NULL;
     struct Env *e = LIST_FIRST(&env_free_list);
-    if (e == NULL) {
-        panic("env_alloc : E_NO_FREE_ENV err\n");
-    }
+    assert(e != NULL);
+    e->env_id = mkenvid(e);
+
     r = page_alloc(&p);
-    if (r < 0) {
-        panic("env_alloc - page_alloc error\n");
-    }
+    assert(r >= 0);
+
     p->pp_ref++;
     e->env_pgdir = (u_long *) page2kva(p);
-
-    page_insert(e->env_pgdir, pa2page(PADDR(e->env_pgdir)), UVPD, PTE_USER | PTE_RO, e->env_id);
-    
-    e->env_id = mkenvid(e);
+    page_insert(e->env_pgdir, pa2page(PADDR(e->env_pgdir)), UVPD, PTE_USER | PTE_RO, ENVX(e->env_id));
+        
     e->env_parent_id = parent_id;
     e->env_status = ENV_RUNNABLE;
     e->env_tf.spsr = 0;
@@ -87,27 +84,29 @@ int env_alloc(struct Env **newenv, u_int parent_id) {
 
 static int load_icode_mapper(u_long va, u_int sgsize, u_char *bin, u_int bin_size, void *user_data) {
     struct Env *env = (struct Env *) user_data;
+    int env_id = ENVX(env->env_id);
     struct Page *p = NULL;
     u_long i;
     int r;
     u_long offset = va - ROUNDDOWN(va, BY2PG);
     for (i = 0; i < bin_size; i += BY2PG) {
         r = page_alloc(&p);
-        if (r < 0) {panic("load_icode_mapper : Allocate page failed.");}
+        assert(r >= 0);
         
         p->pp_ref++;
-        r = page_insert(env->env_pgdir, p, va-offset+i, PTE_USER | PTE_RW, ((struct Env *)user_data)->env_id);
-        if (r < 0) {panic("load_icode_mapper : Insert page failed.");}
+        
+        r = page_insert(env->env_pgdir, p, va-offset+i, PTE_USER | PTE_RW, env_id);
+        assert(r >= 0);
 
         bcopy(bin+i, (void *) page2kva(p) + offset, MIN(BY2PG, bin_size - i));
     }
     while (i < sgsize) {
         r = page_alloc(&p);
-        if (r < 0) {panic("load_icode_mapper : Allocate page failed.");}
+        assert(r >= 0);
 
         p->pp_ref++;
-        r = page_insert(env->env_pgdir, p, va-offset+i, PTE_USER | PTE_RW, ((struct Env *)user_data)->env_id);
-        if (r < 0) {panic("load_icode_mapper : Insert page failed.");}
+        r = page_insert(env->env_pgdir, p, va-offset+i, PTE_USER | PTE_RW, env_id);
+        assert(r >= 0);
         i += BY2PG;
     }
     return 0;
@@ -117,13 +116,14 @@ static void load_icode(struct Env *e, u_char *binary, u_int size) {
     struct Page *p = NULL;
     u_long entry_point;
     u_long r = page_alloc(&p);
-    if (r < 0) {panic("load_icode : Allocate page failed.");}
+    assert(r >= 0);
 
-    r = page_insert(e->env_pgdir, p, U_STACK_TOP - BY2PG, PTE_USER | PTE_RW, e->env_id);
-    if (r < 0) {panic("load_icode : Insert page failed.");}
+    // Use appropriate perm to set initial stack for new Env.
+    r = page_insert(e->env_pgdir, p, U_STACK_TOP - BY2PG, PTE_USER | PTE_RW, ENVX(e->env_id));
+    assert(r >= 0);
 
     r = load_elf(binary, size, &entry_point, e, load_icode_mapper);
-    if (r < 0) {printf("load_icode : Load elf failed.");}
+    assert(r >= 0);
     e->env_tf.elr = entry_point;
 }
 
@@ -132,7 +132,9 @@ env_create_priority(void *binary, unsigned int size, int priority)
 {
     struct Env *e;
     env_alloc(&e,0);
+    // printf("env_create_priority env_id: %d\n", e->env_id);
     e->env_pri = priority;
+    
     load_icode(e,binary,size);
     LIST_INSERT_HEAD(&env_sched_list[priority], e, env_sched_link);
 }
@@ -162,16 +164,16 @@ void env_free(struct Env *e) {
             pte = (Pte *) KADDR(PTE_ADDR(pme[pmeno]));
             for (pteno = 0; pteno < PTX(U_LIMIT); pteno++) {
                 if (pte[pteno] & PTE_4KB) {
-                    page_remove(e->env_pgdir, (pdeno << PDSHIFT) | (pmeno << PMSHIFT) | (pteno << PGSHIFT), e->env_id);
+                    page_remove(e->env_pgdir, (pdeno << PDSHIFT) | (pmeno << PMSHIFT) | (pteno << PGSHIFT), ENVX(e->env_id));
                 }
             }
-            page_decref(pa2page(PTE_ADDR(pme[pmeno])));
+            page_decref(pa2page(PTE_ADDR(pme[pmeno])), ENVX(e->env_id));
             pme[pmeno] = 0;
         }
-        page_decref(pa2page(PTE_ADDR(e->env_pgdir[pdeno])));
+        page_decref(pa2page(PTE_ADDR(e->env_pgdir[pdeno])), ENVX(e->env_id));
         e->env_pgdir[pdeno] = 0;
     }
-    page_decref(pa2page((u_long) e->env_pgdir));
+    page_decref(pa2page((u_long) e->env_pgdir), ENVX(e->env_id));
     //bzero(e, sizeof(struct Env));
     //e->env_pgdir = 0;
 

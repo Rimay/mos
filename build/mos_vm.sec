@@ -1,0 +1,301 @@
+ELF 头：
+  Magic：   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  类别:                              ELF64
+  数据:                              2 补码，小端序 (little endian)
+  版本:                              1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI 版本:                          0
+  类型:                              EXEC (可执行文件)
+  系统架构:                          AArch64
+  版本:                              0x1
+  入口点地址：               0xffffff8040082800
+  程序头起点：          64 (bytes into file)
+  Start of section headers:          438648 (bytes into file)
+  标志：             0x0
+  本头的大小：       64 (字节)
+  程序头大小：       56 (字节)
+  Number of program headers:         1
+  节头大小：         64 (字节)
+  节头数量：         10
+  字符串表索引节头： 9
+
+节头：
+  [号] 名称              类型             地址              偏移量
+       大小              全体大小          旗标   链接   信息   对齐
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .start            PROGBITS         ffffff8040080000  00010000
+       0000000000002008  0000000000000000 WAX       0     0     4096
+  [ 2] .text             PROGBITS         ffffff8040082800  00012800
+       000000000000628c  0000000000000000  AX       0     0     2048
+  [ 3] .rodata           PROGBITS         ffffff8040088a90  00018a90
+       0000000000000711  0000000000000000   A       0     0     8
+  [ 4] .data             PROGBITS         ffffff80400891a8  000191a8
+       00000000000500f0  0000000000000000  WA       0     0     8
+  [ 5] .bss              NOBITS           ffffff80400d9298  00069298
+       0000000009f4cf10  0000000000000000  WA       0     0     8
+  [ 6] .comment          PROGBITS         0000000000000000  00069298
+       0000000000000024  0000000000000001  MS       0     0     1
+  [ 7] .symtab           SYMTAB           0000000000000000  000692c0
+       0000000000001578  0000000000000018           8   102     8
+  [ 8] .strtab           STRTAB           0000000000000000  0006a838
+       00000000000008f9  0000000000000000           0     0     1
+  [ 9] .shstrtab         STRTAB           0000000000000000  0006b131
+       0000000000000044  0000000000000000           0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  p (processor specific)
+
+There are no section groups in this file.
+
+程序头：
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000010000 0xffffff8040080000 0xffffff8040080000
+                 0x0000000000059298 0x0000000009fa61a8  RWE    0x10000
+
+ Section to Segment mapping:
+  段节...
+   00     .start .text .rodata .data .bss 
+
+There is no dynamic section in this file.
+
+该文件中没有重定位信息。
+
+The decoding of unwind sections for machine type AArch64 is not currently supported.
+
+Symbol table '.symtab' contains 229 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: ffffff8040080000     0 SECTION LOCAL  DEFAULT    1 
+     2: ffffff8040082800     0 SECTION LOCAL  DEFAULT    2 
+     3: ffffff8040088a90     0 SECTION LOCAL  DEFAULT    3 
+     4: ffffff80400891a8     0 SECTION LOCAL  DEFAULT    4 
+     5: ffffff80400d9298     0 SECTION LOCAL  DEFAULT    5 
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
+     7: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS CMakeFiles/mos_vm.elf.dir
+     8: ffffff8040080000     0 NOTYPE  LOCAL  DEFAULT    1 $x
+     9: ffffff8040081000     0 NOTYPE  LOCAL  DEFAULT    1 kernel_page_directory
+    10: ffffff8040081000     0 NOTYPE  LOCAL  DEFAULT    1 $d
+    11: ffffff8040080090     0 NOTYPE  LOCAL  DEFAULT    1 $d
+    12: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS vm.c
+    13: ffffff8040082000     0 NOTYPE  LOCAL  DEFAULT    1 $d
+    14: ffffff8040082000     8 OBJECT  LOCAL  DEFAULT    1 freemem
+    15: ffffff80400800c8     0 NOTYPE  LOCAL  DEFAULT    1 $x
+    16: ffffff80400800c8   120 FUNC    LOCAL  DEFAULT    1 boot_bzero
+    17: ffffff8040080140   156 FUNC    LOCAL  DEFAULT    1 boot_alloc
+    18: ffffff80400801dc   296 FUNC    LOCAL  DEFAULT    1 boot_pgdir_walk
+    19: ffffff8040080304   144 FUNC    LOCAL  DEFAULT    1 boot_map_segment
+    20: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS uart.c
+    21: ffffff8040082800     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    22: ffffff8040082800    36 FUNC    LOCAL  DEFAULT    2 writel
+    23: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS main.c
+    24: ffffff804008284c     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    25: ffffff8040088a90     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    26: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS CMakeFiles/mos_vm.elf.dir
+    27: ffffff8040083000     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    28: ffffff8040083848     0 NOTYPE  LOCAL  DEFAULT    2 el1_sync
+    29: ffffff8040083828     0 NOTYPE  LOCAL  DEFAULT    2 el1_irq
+    30: ffffff8040083838     0 NOTYPE  LOCAL  DEFAULT    2 el1_fiq
+    31: ffffff8040083840     0 NOTYPE  LOCAL  DEFAULT    2 el1_err
+    32: ffffff80400837e8     0 NOTYPE  LOCAL  DEFAULT    2 el0_sync
+    33: ffffff8040083828     0 NOTYPE  LOCAL  DEFAULT    2 el0_irq
+    34: ffffff8040083838     0 NOTYPE  LOCAL  DEFAULT    2 el0_fiq
+    35: ffffff8040083840     0 NOTYPE  LOCAL  DEFAULT    2 el0_err
+    36: ffffff8040083818     0 NOTYPE  LOCAL  DEFAULT    2 el0_sync_pgfault
+    37: ffffff8040083820     0 NOTYPE  LOCAL  DEFAULT    2 el0_sync_syscall
+    38: ffffff8040083810     0 NOTYPE  LOCAL  DEFAULT    2 el0_sync_end
+    39: ffffff8040083850     0 NOTYPE  LOCAL  DEFAULT    2 $d
+    40: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS cap.c
+    41: ffffff8040083858     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    42: ffffff8040083858    48 FUNC    LOCAL  DEFAULT    2 page2ppn
+    43: ffffff8040088b70     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    44: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS cpu.c
+    45: ffffff8040083dc8     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    46: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS env.c
+    47: ffffff8040083e4c     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    48: ffffff8040083e4c    48 FUNC    LOCAL  DEFAULT    2 page2ppn
+    49: ffffff8040083e7c    36 FUNC    LOCAL  DEFAULT    2 page2kva
+    50: ffffff8040088c70     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    51: ffffff8040083ea0   116 FUNC    LOCAL  DEFAULT    2 pa2page
+    52: ffffff80400d9298     8 OBJECT  LOCAL  DEFAULT    5 env_free_list
+    53: ffffff80400d9298     0 NOTYPE  LOCAL  DEFAULT    5 $d
+    54: ffffff80400d92a0     8 OBJECT  LOCAL  DEFAULT    5 next_env_id.1205
+    55: ffffff8040084450   652 FUNC    LOCAL  DEFAULT    2 load_icode_mapper
+    56: ffffff80400846dc   160 FUNC    LOCAL  DEFAULT    2 load_icode
+    57: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS gicv2.c
+    58: ffffff8040084bdc     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    59: ffffff8040084bdc    64 FUNC    LOCAL  DEFAULT    2 bit_extract
+    60: ffffff80400891a8     0 NOTYPE  LOCAL  DEFAULT    4 $d
+    61: ffffff8040088d40     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    62: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS kclock.c
+    63: ffffff8040085258     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    64: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS kernel_elfloader.c
+    65: ffffff80400852b8     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    66: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS pmap.c
+    67: ffffff8040085454     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    68: ffffff8040085454    48 FUNC    LOCAL  DEFAULT    2 page2ppn
+    69: ffffff8040085484    32 FUNC    LOCAL  DEFAULT    2 page2pa
+    70: ffffff80400854a4    36 FUNC    LOCAL  DEFAULT    2 page2kva
+    71: ffffff8040088d70     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    72: ffffff80400854c8   116 FUNC    LOCAL  DEFAULT    2 pa2page
+    73: ffffff80400d92a8     8 OBJECT  LOCAL  DEFAULT    5 page_free_list
+    74: ffffff80400d92a8     0 NOTYPE  LOCAL  DEFAULT    5 $d
+    75: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS print.c
+    76: ffffff8040088e10     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    77: ffffff8040088e10    25 OBJECT  LOCAL  DEFAULT    3 theFatalMsg
+    78: ffffff8040085ddc     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    79: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS printf.c
+    80: ffffff804008708c     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    81: ffffff804008708c   120 FUNC    LOCAL  DEFAULT    2 myoutput
+    82: ffffff80400d92b0     0 NOTYPE  LOCAL  DEFAULT    5 $d
+    83: ffffff8040088e38     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    84: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS psci.c
+    85: ffffff804008724c     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    86: ffffff804008724c   108 FUNC    LOCAL  DEFAULT    2 smc_call
+    87: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS sched.c
+    88: ffffff8040087310     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    89: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS spin_lock.c
+    90: ffffff80400d92b4     4 OBJECT  LOCAL  DEFAULT    5 kernel_lock
+    91: ffffff80400d92b4     0 NOTYPE  LOCAL  DEFAULT    5 $d
+    92: ffffff8040087824     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    93: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS syscall_all.c
+    94: ffffff80400878c0     0 NOTYPE  LOCAL  DEFAULT    2 $x
+    95: ffffff80400878c0    48 FUNC    LOCAL  DEFAULT    2 page2ppn
+    96: ffffff80400878f0    36 FUNC    LOCAL  DEFAULT    2 page2kva
+    97: ffffff8040088e58     0 NOTYPE  LOCAL  DEFAULT    3 $d
+    98: ffffff8040087914   116 FUNC    LOCAL  DEFAULT    2 pa2page
+    99: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS trap.c
+   100: ffffff8040088320     0 NOTYPE  LOCAL  DEFAULT    2 $x
+   101: ffffff8040089050     0 NOTYPE  LOCAL  DEFAULT    3 $d
+   102: ffffff8040083f14   112 FUNC    GLOBAL DEFAULT    2 mkenvid
+   103: ffffff8040085ddc  3460 FUNC    GLOBAL DEFAULT    2 lp_Print
+   104: ffffff8040088338    24 FUNC    GLOBAL DEFAULT    2 get_elr
+   105: 0000000000009820     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_test1_elf_size
+   106: ffffff8040083888   336 FUNC    GLOBAL DEFAULT    2 cap_init
+   107: ffffff8040087c9c   120 FUNC    GLOBAL DEFAULT    2 sys_mem_unmap
+   108: ffffff80400d92c0     4 OBJECT  GLOBAL DEFAULT    5 cap_page_start_index
+   109: ffffff80400871a8   164 FUNC    GLOBAL DEFAULT    2 _panic
+   110: ffffff8040087104   164 FUNC    GLOBAL DEFAULT    2 printf
+   111: ffffff8040085000   312 FUNC    GLOBAL DEFAULT    2 gicc_init
+   112: ffffff80400a6a20     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test1_elf_end
+   113: ffffff8040088058    24 FUNC    GLOBAL DEFAULT    2 sys_yield
+   114: ffffff8040085b1c   320 FUNC    GLOBAL DEFAULT    2 page_insert
+   115: 000000000000a820     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_test3_elf_size
+   116: ffffff8040088128    28 FUNC    GLOBAL DEFAULT    2 sys_set_trapframe
+   117: ffffff8040080014     0 NOTYPE  GLOBAL DEFAULT    1 _el1_start
+   118: ffffff8040083e30    28 FUNC    GLOBAL DEFAULT    2 cpu_current_id
+   119: ffffff80400891a8     8 OBJECT  GLOBAL DEFAULT    4 gicd
+   120: ffffff8040083f84   296 FUNC    GLOBAL DEFAULT    2 envid2env
+   121: ffffff8040083e24    12 FUNC    GLOBAL DEFAULT    2 cpu_disable_irq
+   122: ffffff8040082824    40 FUNC    GLOBAL DEFAULT    2 uart_send
+   123: ffffff8040085c5c   148 FUNC    GLOBAL DEFAULT    2 page_lookup
+   124: ffffff804a026188    32 OBJECT  GLOBAL DEFAULT    5 trap_frames
+   125: ffffff80400b1240     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test3_elf_start
+   126: ffffff8040085814   172 FUNC    GLOBAL DEFAULT    2 page_alloc
+   127: ffffff8040085138    88 FUNC    GLOBAL DEFAULT    2 timer_gic_init
+   128: ffffff80400842b8   408 FUNC    GLOBAL DEFAULT    2 env_alloc
+   129: ffffff80400d92c4     4 OBJECT  GLOBAL DEFAULT    5 cap_page_end_index
+   130: ffffff8040085258    72 FUNC    GLOBAL DEFAULT    2 kclock_next
+   131: ffffff8040084a88    28 FUNC    GLOBAL DEFAULT    2 set_ttbr0
+   132: ffffff8040084abc   288 FUNC    GLOBAL DEFAULT    2 env_run
+   133: 000000000000a820     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_test2_elf_size
+   134: 0000000000009820     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_test0_elf_size
+   135: ffffff80400b1240     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test2_elf_end
+   136: ffffff8040087e94   404 FUNC    GLOBAL DEFAULT    2 sys_set_env_status
+   137: ffffff80400939e0     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test0_elf_start
+   138: ffffff80400852b8   100 FUNC    GLOBAL DEFAULT    2 is_elf_format
+   139: ffffff80400879f0    48 FUNC    GLOBAL DEFAULT    2 sys_panic
+   140: ffffff80496c4148 0x62000 OBJECT  GLOBAL DEFAULT    5 envs
+   141: ffffff8049726148    24 OBJECT  GLOBAL DEFAULT    5 env_sched_list
+   142: ffffff8040088368    24 FUNC    GLOBAL DEFAULT    2 get_far
+   143: ffffff8040088144   116 FUNC    GLOBAL DEFAULT    2 sys_ipc_recv
+   144: 000000000000a820     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_test4_elf_size
+   145: ffffff8040086de0   684 FUNC    GLOBAL DEFAULT    2 PrintNum
+   146: ffffff8040087a20   276 FUNC    GLOBAL DEFAULT    2 sys_mem_alloc
+   147: ffffff8040084c70   192 FUNC    GLOBAL DEFAULT    2 gicd_set_trgt
+   148: ffffff8040084d30   140 FUNC    GLOBAL DEFAULT    2 gicd_set_enable
+   149: ffffff80400856f4   120 FUNC    GLOBAL DEFAULT    2 bzero
+   150: ffffff80400d92c8 0x95eae80 OBJECT  GLOBAL DEFAULT    5 caps
+   151: ffffff80400852a0    24 FUNC    GLOBAL DEFAULT    2 kclock_init
+   152: ffffff8040087988    60 FUNC    GLOBAL DEFAULT    2 sys_set_return
+   153: ffffff8040083788     0 NOTYPE  GLOBAL DEFAULT    2 pop_context
+   154: ffffff80400cfa88     0 NOTYPE  GLOBAL DEFAULT    4 _binary_fktest_elf_start
+   155: ffffff804008531c   312 FUNC    GLOBAL DEFAULT    2 load_elf
+   156: ffffff8040088350    24 FUNC    GLOBAL DEFAULT    2 get_esr
+   157: ffffff8040087844    32 FUNC    GLOBAL DEFAULT    2 unlock_kernel
+   158: ffffff8040088380   856 FUNC    GLOBAL DEFAULT    2 handle_el0_syscall
+   159: ffffff8040083c60   360 FUNC    GLOBAL DEFAULT    2 cap_unmap_free_page
+   160: ffffff80400879c4    36 FUNC    GLOBAL DEFAULT    2 sys_putchar
+   161: ffffff8040088070    80 FUNC    GLOBAL DEFAULT    2 sys_env_destroy
+   162: ffffff8040083e18    12 FUNC    GLOBAL DEFAULT    2 cpu_enable_irq
+   163: ffffff8040088320    24 FUNC    GLOBAL DEFAULT    2 get_el
+   164: ffffff8040088924   120 FUNC    GLOBAL DEFAULT    2 handle_el1_sync
+   165: ffffff80400d92b8     8 OBJECT  GLOBAL DEFAULT    5 boot_pgdir
+   166: ffffff8040080000     0 NOTYPE  GLOBAL DEFAULT    1 _start
+   167: ffffff8040084dbc   192 FUNC    GLOBAL DEFAULT    2 gicd_set_prio
+   168: 0000000000009808     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_idle_elf_size
+   169: ffffff804a0261a8     0 NOTYPE  GLOBAL DEFAULT    5 kernel_end
+   170: ffffff804a0261a8     0 NOTYPE  GLOBAL DEFAULT    5 bss_end
+   171: ffffff80400879e8     8 FUNC    GLOBAL DEFAULT    2 sys_cgetc
+   172: ffffff80400bba60     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test3_elf_end
+   173: ffffff80400839d8   200 FUNC    GLOBAL DEFAULT    2 _cap_env_id_switch
+   174: ffffff8040086c40   416 FUNC    GLOBAL DEFAULT    2 PrintString
+   175: ffffff8040087b34   360 FUNC    GLOBAL DEFAULT    2 sys_mem_map
+   176: ffffff8040080394   172 FUNC    GLOBAL DEFAULT    1 vm_init
+   177: ffffff80400d9298     0 NOTYPE  GLOBAL DEFAULT    4 bss_start
+   178: ffffff8040085190   200 FUNC    GLOBAL DEFAULT    2 gic_handler
+   179: ffffff8040087824    32 FUNC    GLOBAL DEFAULT    2 lock_kernel
+   180: ffffff8040084860   448 FUNC    GLOBAL DEFAULT    2 env_free
+   181: ffffff8040087d14   384 FUNC    GLOBAL DEFAULT    2 sys_env_alloc
+   182: ffffff804008576c   168 FUNC    GLOBAL DEFAULT    2 bcopy
+   183: ffffff80400c6280     0 NOTYPE  GLOBAL DEFAULT    4 _binary_idle_elf_start
+   184: ffffff8040083dc8    80 FUNC    GLOBAL DEFAULT    2 cpu_boot_secondary
+   185: ffffff804009d200     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test0_elf_end
+   186: 000000000000a828     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_pingpong_elf_size
+   187: ffffff80400872b8    88 FUNC    GLOBAL DEFAULT    2 psci_cpu_on
+   188: ffffff80400880c0   104 FUNC    GLOBAL DEFAULT    2 sys_set_pgfault_handler
+   189: ffffff80400888ac   120 FUNC    GLOBAL DEFAULT    2 handle_el0_sync
+   190: ffffff804008284c    84 FUNC    GLOBAL DEFAULT    2 memset
+   191: ffffff80400828a0   320 FUNC    GLOBAL DEFAULT    2 main
+   192: ffffff8040086b60   224 FUNC    GLOBAL DEFAULT    2 PrintChar
+   193: ffffff8040085d48   148 FUNC    GLOBAL DEFAULT    2 page_remove
+   194: ffffff80400c6280     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test4_elf_end
+   195: ffffff80400858c0   136 FUNC    GLOBAL DEFAULT    2 page_free
+   196: ffffff80400840ac   524 FUNC    GLOBAL DEFAULT    2 env_init
+   197: ffffff80400cfa88     0 NOTYPE  GLOBAL DEFAULT    4 _binary_idle_elf_end
+   198: ffffff8040084c1c    84 FUNC    GLOBAL DEFAULT    2 interrupts_arch_enable
+   199: ffffff80400891b8     0 NOTYPE  GLOBAL DEFAULT    4 _binary_pingpong_elf_star
+   200: ffffff8040084a20   104 FUNC    GLOBAL DEFAULT    2 env_destroy
+   201: ffffff8040084e7c   388 FUNC    GLOBAL DEFAULT    2 gicd_init
+   202: ffffff80400878a4    28 FUNC    GLOBAL DEFAULT    2 spin_unlock
+   203: ffffff80400891b0     8 OBJECT  GLOBAL DEFAULT    4 gicc
+   204: ffffff8049726160    32 OBJECT  GLOBAL DEFAULT    5 curenv
+   205: ffffff8049726180     8 OBJECT  GLOBAL DEFAULT    5 page_freemem
+   206: ffffff8040085cf0    88 FUNC    GLOBAL DEFAULT    2 page_decref
+   207: ffffff80400886d8   468 FUNC    GLOBAL DEFAULT    2 handle_el0_pgfault
+   208: ffffff8040088028    48 FUNC    GLOBAL DEFAULT    2 sys_getenvid
+   209: ffffff8040087864    64 FUNC    GLOBAL DEFAULT    2 spin_lock
+   210: 0000000000009810     0 NOTYPE  GLOBAL DEFAULT  ABS _binary_fktest_elf_size
+   211: ffffff80400939e0     0 NOTYPE  GLOBAL DEFAULT    4 _binary_pingpong_elf_end
+   212: ffffff80400bba60     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test4_elf_start
+   213: ffffff804009d200     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test1_elf_start
+   214: ffffff8040083000     0 NOTYPE  GLOBAL DEFAULT    2 vectors
+   215: ffffff804008553c   440 FUNC    GLOBAL DEFAULT    2 page_init
+   216: ffffff80400d92b0     4 OBJECT  GLOBAL DEFAULT    5 print_lock
+   217: ffffff8040085948   468 FUNC    GLOBAL DEFAULT    2 pgdir_walk
+   218: ffffff8040084834    44 FUNC    GLOBAL DEFAULT    2 env_create
+   219: ffffff8040083aa0   448 FUNC    GLOBAL DEFAULT    2 cap_map_free_page
+   220: ffffff80400881b8   360 FUNC    GLOBAL DEFAULT    2 sys_ipc_can_send
+   221: ffffff8040088a14   120 FUNC    GLOBAL DEFAULT    2 handle_err
+   222: ffffff8040087310  1300 FUNC    GLOBAL DEFAULT    2 sched_yield
+   223: ffffff8049726188 0x900000 OBJECT  GLOBAL DEFAULT    5 pages
+   224: ffffff804008899c   120 FUNC    GLOBAL DEFAULT    2 handle_fiq
+   225: ffffff804008477c   184 FUNC    GLOBAL DEFAULT    2 env_create_priority
+   226: ffffff80400a6a20     0 NOTYPE  GLOBAL DEFAULT    4 _binary_test2_elf_start
+   227: ffffff8040084aa4    24 FUNC    GLOBAL DEFAULT    2 tlb_invalidate
+   228: ffffff80400d9298     0 NOTYPE  GLOBAL DEFAULT    4 _binary_fktest_elf_end
+
+No version information found in this file.

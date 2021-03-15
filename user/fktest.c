@@ -11,10 +11,10 @@ void umain() {
         //     }
         // }
         for (;;) {
-            writef("child1 \t");
+            // writef("child1 \t");
         }
     }
     for (;;) {
-        writef("father \t");
+        // writef("father \t");
     }
 }

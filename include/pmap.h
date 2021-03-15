@@ -35,8 +35,8 @@ static inline struct Page *pa2page(u_long pa) {
 
 void page_init(u64 freemem);
 int page_alloc(struct Page **pp);
-void page_free(struct Page *pp);
-void page_decref(struct Page *pp);
+void page_free(struct Page *pp, u32 env_id);
+void page_decref(struct Page *pp, u32 env_id);
 int pgdir_walk(u64 *pgdir, u_long va, int create, u64 **ppte, u32 env_id);
 int page_insert(u64 *pgdir, struct Page *pp, u_long va, u_long perm, u32 env_id);
 struct Page *page_lookup(u64 *pgdir, u_long va, u64 **ppte, u32 env_id);

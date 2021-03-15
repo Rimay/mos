@@ -4,69 +4,59 @@ extern struct Env *env;
 
 #define PAGE_FAULT_TEMP (U_XSTACK_TOP - 2 * BY2PG)
 
-static void pgfault(unsigned long va)
+static void pgfault(u64 va)
 {
     int r;
-    unsigned long pte;
+    u64 pte;
     va = (va >> PGSHIFT) << PGSHIFT;
     pte = vpt[PDX(va) * 512 * 512 + PMX(va) * 512 + PTX(va)];
-    if (!(pte & PTE_COW)) {
-        user_panic("pgfault : not copy on write");
-    }
+    user_assert(pte & PTE_COW);
+
     r = syscall_mem_alloc(0, PAGE_FAULT_TEMP, PTE_USER | PTE_RW);
-    if (r < 0) {
-        user_panic("pgfault : syscall_mem_alloc");
-    }
+    user_assert(r>=0);
+    
     user_bcopy((void *)va, (void *)PAGE_FAULT_TEMP, BY2PG);
     r = syscall_mem_map(0, PAGE_FAULT_TEMP, 0, va, PTE_USER | PTE_RW);
-    if (r < 0) {
-        user_panic("pgfault : syscall_mem_map");
-    }
+    user_assert(r>=0);
+    
     r = syscall_mem_unmap(0, PAGE_FAULT_TEMP);
-    if (r < 0) {
-        user_panic("pgfault : syscall_mem_unmap");
-    }
+    user_assert(r>=0);
 }
 
 extern void __asm_pgfault_handler(void);
 
-static void duppage(unsigned int envid, unsigned long va, unsigned long pte)
+static void duppage(u32 envid, u64 va, u64 pte)
 {
     int r;
-    unsigned long perm = pte & 0xFFF;
+    u64 perm = pte & 0xFFF;
+    // 共享页面
     if (pte & PTE_LIBRARY) {
         r = syscall_mem_map(0, va, envid, va, perm & PTE_LIBRARY);
-        if (r < 0) {
-            writef("[ERR] duppage : syscall_mem_map #-1\n");
-        }
-    } else if ((perm & PTE_RO) == 0 || (pte & PTE_COW) != 0) {
+        user_assert(r>=0);
+    }
+    // 可写页面或写时复制页面 
+    else if ((perm & PTE_RO) == 0 || (pte & PTE_COW) != 0) {  
         r = syscall_mem_map(0, va, envid, va, PTE_USER | PTE_RO | PTE_COW);
-        if (r < 0) {
-            writef("[ERR] duppage : syscall_mem_map #0\n");
-        }
+        user_assert(r>=0);
         r = syscall_mem_map(0, va, 0,     va, PTE_USER | PTE_RO | PTE_COW);
-        if (r < 0) {
-            writef("[ERR] duppage : syscall_mem_map #1\n");
-        }
-    } else {
+        user_assert(r>=0);
+    }
+    // 只读页面 
+    else {
         r = syscall_mem_map(0, va, envid, va, perm);
-        if (r < 0) {
-            writef("[ERR] duppage : syscall_mem_map #3\n");
-        }
+        user_assert(r>=0);
     }
 }
 
 int fork() {
-    unsigned int envid;
+    u32 envid;
     int ret;
-    unsigned long va, i, j, k, pte;
+    u64 va, i, j, k, pte;
 
     set_pgfault_handler(pgfault);
+    
     envid = syscall_env_alloc();
-    if (envid < 0) {
-        user_panic("[ERR] fork %d : syscall_env_alloc failed", ret);
-        return -1;
-    }
+    user_assert(envid >= 0);
     if (envid == 0) {
         env = &(envs[ENVX(syscall_getenvid())]);
         return 0;
@@ -88,21 +78,13 @@ int fork() {
 
     DUPPAGE_OK:
     ret = syscall_mem_alloc(envid, U_XSTACK_TOP - BY2PG, PTE_USER | PTE_RW);
-    if (ret < 0) {
-        user_panic("[ERR] fork %d : syscall_mem_alloc failed", envid);
-        return ret;
-    }
-    ret = syscall_set_pgfault_handler(envid, __asm_pgfault_handler, U_XSTACK_TOP);
-    if (ret < 0) {
-        user_panic("[ERR] fork %d : syscall_set_pgfault_handler failed", envid);
-        return ret;
-    }
-    ret = syscall_set_env_status(envid, ENV_RUNNABLE);
-    if (ret < 0) {
-        user_panic("[ERR] fork %d : syscall_set_env_status failed", envid);
-        return ret;
-    }
+    user_assert(ret >= 0);
 
-    
+    ret = syscall_set_pgfault_handler(envid, __asm_pgfault_handler, U_XSTACK_TOP);
+    user_assert(ret >= 0);
+
+    ret = syscall_set_env_status(envid, ENV_RUNNABLE);
+    user_assert(ret >= 0);
+
     return envid;
 }

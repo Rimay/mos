@@ -1,0 +1,4 @@
+/home/yili/mos/build/CMakeFiles/edit_cache.dir
+/home/yili/mos/build/CMakeFiles/rebuild_cache.dir
+/home/yili/mos/build/CMakeFiles/mos_qemu.elf.dir
+/home/yili/mos/build/CMakeFiles/mos_vm.elf.dir

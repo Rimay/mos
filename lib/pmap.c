@@ -61,17 +61,15 @@ int page_alloc(struct Page **pp) {
     return 0;
 }
 
-void page_free(struct Page *pp) {
+void page_free(struct Page *pp, u32 env_id) {
     int r;
-    if (pp->pp_ref > 0)
-        return;
-    if (pp->pp_ref < 0) {
-        panic("page_free PAGE REF < 0. ");
-    }
-    r = cap_unmap_free_page(pp);
-    if (r < 0) {
-        panic("*** page_free cap_map_unused_page failed ");
-    }
+    if (pp->pp_ref > 0) return;
+    assert(pp->pp_ref == 0);
+
+    // unmap the page
+    r = cap_unmap_free_page(env_id, pp);
+    assert(r >= 0);
+
     LIST_INSERT_HEAD(&page_free_list, pp, pp_link);
     return;
 }
@@ -120,11 +118,9 @@ int page_insert(u64 *pgdir, struct Page *pp, u_long va, u_long perm, u32 env_id)
     u64 *pte;
     PERM = perm | PTE_NORMAL | PTE_INNER_SHARE | PTE_AF | PTE_4KB;
 
-    // map the free page 
+    // map the page 
     r = cap_map_free_page(env_id, pp);
-    if (r != 0) {
-        panic ("*** page_insert cap_map_unused_page failed .\n");
-    }
+    assert(r == 0);
 
     pgdir_walk(pgdir, va, 1, &pte, env_id);
     if ((*pte & PTE_4KB) != 0) {        // dirty 
@@ -163,8 +159,8 @@ struct Page *page_lookup(u64 *pgdir, u_long va, u64 **ppte, u32 env_id) {
 }
 
 
-void page_decref(struct Page *pp) {
-    if (--pp->pp_ref == 0)  page_free(pp);
+void page_decref(struct Page *pp, u32 env_id) {
+    if (--pp->pp_ref == 0)  page_free(pp, ENVX(env_id));
 }
 
 void page_remove(u64 *pgdir, u_long va, u32 env_id) {
@@ -175,7 +171,7 @@ void page_remove(u64 *pgdir, u_long va, u32 env_id) {
     }
     ppage->pp_ref--;
     if (ppage->pp_ref == 0) {
-        page_free(ppage);
+        page_free(ppage, ENVX(env_id));
     }
     *pte = 0;
     tlb_invalidate();
