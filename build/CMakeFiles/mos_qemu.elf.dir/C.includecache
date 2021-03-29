@@ -89,6 +89,8 @@ types.h
 ../include/syscall_all.h
 mmu.h
 -
+types.h
+-
 
 ../include/trap.h
 types.h
@@ -254,6 +256,8 @@ pmap.h
 sched.h
 -
 cpu.h
+-
+cap.h
 -
 
 /home/yili/mos/lib/trap.c

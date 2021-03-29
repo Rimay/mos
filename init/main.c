@@ -28,7 +28,7 @@ extern void _binary_fktest_elf_end();
 
 extern char bss_start[];
 extern char bss_end[];
-extern struct cap caps[];
+extern struct cap_opt caps_opt[];
 
 void *memset(void *dst, u8 c, u64 count)
 {
@@ -78,7 +78,8 @@ void main(u64 freemem)
         // env_create_priority(_binary_idle_elf_start, _binary_idle_elf_end - _binary_idle_elf_start, 0);
         // env_create_priority(_binary_idle_elf_start, _binary_idle_elf_end - _binary_idle_elf_start, 0);
 
-        env_create_priority(_binary_fktest_elf_start, _binary_fktest_elf_end - _binary_fktest_elf_start, 1);
+        u64 rights = RIGHTS_ENV_ALLOC | RIGHTS_SET_ENV_STATUS | RIGHTS_GET_ENV_ID | RIGHTS_YIELD | RIGHTS_ENV_DESTROY | RIGHTS_SET_PGFAULT_HANDLER | RIGHTS_MEM_ALLOC | RIGHTS_MEM_UNMAP;
+        env_create_priority(_binary_fktest_elf_start, _binary_fktest_elf_end - _binary_fktest_elf_start, 1, rights);
         // env_create_priority(_binary_pingpong_elf_start, _binary_pingpong_elf_end - _binary_pingpong_elf_start, 1);
         printf("env_create ok!\n");
         

@@ -2,12 +2,15 @@
 #include "queue.h"
 #include "pmap.h"
 
-struct cap caps[NCAP];
-// static struct cap_list cap_free_list;
+
 extern int page_freemem;
+
+struct cap_opt caps_opt[NCAP_OPT];
+static struct cap_opt_list cap_opt_free_list;
 
 u32 cap_page_start_index;
 u32 cap_page_end_index;
+u32 max_ppn;
 
 
 // todo 内存指定地址开辟一段空间保存数据
@@ -15,93 +18,94 @@ void cap_init()
 {
     int i, j;
 
-    for (i = 0; i < NCAP; i++) {
-        // for (j = 0; j < CAP_ENVIDS_LEN; j++) {
-        //     caps[i].env_ids[j] = 0;
-        // }
-        for (j = 0; j < NENV; j++) {
-            _cap_env_id_switch(i, j, 0);
-        }
-        caps[i].addr = NULL;
-        caps[i].cap_type = CAP_TYPE_UNUSED;
-        caps[i].rights = (1u << PTE_WRITE);
-    }
     cap_page_start_index = (u32)(page_freemem / BY2PG);
     cap_page_end_index = (u32)(PHYSICAL_MEMORY_END / BY2PG);
+    max_ppn = cap_page_end_index - cap_page_start_index;
+
+    LIST_INIT(&cap_opt_free_list);
+    for (i = 0; i < NCAP_OPT; i++) {
+        caps_opt[i].cap_id = i;
+        if (i < max_ppn) {
+            caps_opt[i].ppn = i + cap_page_start_index;
+            caps_opt[i].rights = 0;
+        }
+        else if (i < max_ppn + NENV) {
+            caps_opt[i].env_id = i - max_ppn;
+            caps_opt[i].rights |= RIGHTS_ENV_ALLOC | RIGHTS_SET_ENV_STATUS | RIGHTS_GET_ENV_ID | RIGHTS_YIELD | RIGHTS_ENV_DESTROY | RIGHTS_SET_PGFAULT_HANDLER | RIGHTS_MEM_ALLOC | RIGHTS_MEM_UNMAP;
+        }
+        // caps_opt[i].env_id2 =  -1;
+        // caps_opt[i].perm = 0;
+        
+        LIST_INSERT_HEAD(&cap_opt_free_list, &caps_opt[i], cap_opt_link);
+    }
 }
 
-void _cap_env_id_switch(u32 cap_id, u32 env_id, u8 on)
+
+u8 cap_set_env_rights(u32 env_id, u64 rights)
 {
-    assert(cap_id < NCAP);
-    assert(env_id < NENV);
-    caps[cap_id].env_ids[env_id] = on;
-    
-    // u8 i = env_id / 64, j = env_id % 64;
-    // assert(i < CAP_ENVIDS_LEN);
+    // cal cap_id
+    assert(0 <= env_id && env_id < NENV);
+    u32 cap_id = env_id + cap_page_start_index;
 
-    // struct cap *c = &caps[cap_id];
-    // if (on & 1) {
-    //     c->env_ids[i] |= (1u << j);
-    // }
-    // else {
-    //     c->env_ids[i] &= (0u << j);
-    // }
-    // printf("i %d  j %d  c->env_ids[i] %d\n", i, j, c->env_ids[i]);
+    // set rights
+    struct cap_opt *c = &caps_opt[cap_id];
+    c->rights = rights;
+
+    return 0;
 }
+
 
 int cap_map_free_page(u32 env_id, struct Page* page)
 {
+    // cal ppn 
     u64 ppn = page2ppn(page);
-    assert(cap_page_start_index <= ppn);
-    assert(ppn < cap_page_end_index);
-    assert(ppn - cap_page_start_index < NCAP);
-
+    assert(cap_page_start_index <= ppn && ppn < cap_page_end_index);
     // printf("cap_map_free_page env_id: %d\tppn: %d\toffset: %d\ts: %d\te: %d\n", env_id, ppn, ppn - cap_page_start_index, cap_page_start_index, cap_page_end_index);
 
+    // cal the cap_id
     u32 cap_id = ppn - cap_page_start_index;
-    struct cap *c = &caps[cap_id];
-    _cap_env_id_switch(cap_id, env_id, 1);
-    c->cap_type = CAP_TYPE_FREE_PAGE;
-    c->addr = page;
+
+    // set env_id 
+    struct cap_opt *c = &caps_opt[cap_id];
+    c->env_id = (u16)env_id;
+    
     return 0;
 }
+
 
 int cap_unmap_free_page(u32 env_id, struct Page* page)
 {
+    // cal ppn 
     u64 ppn = page2ppn(page);
-    assert(cap_page_start_index <= ppn);
-    assert(ppn < cap_page_end_index);
-    assert(ppn - cap_page_start_index < NCAP);
+    assert(cap_page_start_index <= ppn && ppn < cap_page_end_index);
 
+    // cal cap_id
     u32 cap_id = ppn - cap_page_start_index;
-    struct cap *c = &caps[cap_id];
-    _cap_env_id_switch(cap_id, env_id, 0);
-    c->cap_type = CAP_TYPE_UNUSED;
-    c->addr = 0;
-    return 0;
-}
 
-u8 check_page_pte_perm(u32 env_id, struct Page *page, u8 ro, u8 cow, u8 pte_lib)
-{   
-    u64 ppn = page2ppn(page);
-    assert(cap_page_start_index <= ppn);
-    assert(ppn < cap_page_end_index);
-    assert(ppn - cap_page_start_index < NCAP);
+    // reset env_id
+    struct cap_opt *c = &caps_opt[cap_id];
+    c->env_id = -1;
     
-    assert(env_id < NENV);
-
-    u32 cap_id = ppn - cap_page_start_index;
-    struct cap *c = &caps[cap_id];
     return 0;
 }
 
-u8 check_page_alloc_perm(u32 env_id)
-{
-    return 0;
-}
 
-u8 check_page_remove_perm(u32 env_id, struct Page *page)
+
+u8 check_env_right(u32 env_id, u64 rights)
 {
+    // cal cap_id
+    assert(0 <= env_id && env_id < NENV);
+    u32 cap_id = env_id + cap_page_start_index;
+
+    // get env_id's rights
+    struct cap_opt *c = &caps_opt[cap_id];
+    u64 r = c->rights;
+    
+    // judge if the rights are ok
+    u64 t = (r & rights);
+    // printf("env_id: %d\tcap_id: %d\tr: %d\tt: %d\trights: %d\n", env_id, cap_id, r, t, rights);
+    assert(t == rights);
+
     return 0;
 }
 

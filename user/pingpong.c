@@ -2,7 +2,8 @@
 
 void umain(void) {
     unsigned int who, i;
-    if ((who = fork()) != 0) {
+    u64 rights = 0;
+    if ((who = fork(rights)) != 0) {
         writef("\n@@@@@send 0 from %x to %x\n", syscall_getenvid(), who);
         ipc_send(who, 0, 0, 0);
     }

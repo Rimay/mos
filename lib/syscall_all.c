@@ -31,22 +31,25 @@ void sys_panic(int sysno, char *msg) {
 int sys_mem_alloc(int sysno, u32 envid, u64 va, u64 perm) {
     struct Env *env;
     struct Page *ppage;
-    int r;
+    int r = check_env_right(ENVX(envid), RIGHTS_MEM_ALLOC);
+    if (r < 0) {
+        printf("[ERR] sys_mem_alloc check_env_right failed\n");
+        return r;
+    }
+
     if (va >= U_LIMIT) {
         printf("[ERR] sys_mem_alloc va\n");
         return -1;
     }
+    
     r = envid2env(envid, &env, 0);
     if (r < 0) {
         printf("[ERR] sys_mem_alloc envid2env\n");
         return r;
     }
-    // check alloc_perm correct
-    r = check_page_alloc_perm(envid);
-    if (r < 0) {
-        printf("[ERR] sys_mem_alloc check_page_alloc_perm\n");
-        return r;
-    }
+    
+    
+
     r = page_alloc(&ppage);
     if (r < 0) {
         printf("[ERR] sys_mem_alloc page_alloc\n");
@@ -58,8 +61,10 @@ int sys_mem_alloc(int sysno, u32 envid, u64 va, u64 perm) {
         printf("[ERR] sys_mem_alloc page_insert\n");
         return r;
     }
+    
     return 0;
 }
+
 
 int sys_mem_map(int sysno, u32 srcid, u64 srcva, u32 dstid, u64 dstva, u64 perm) {
     int r;
@@ -68,29 +73,31 @@ int sys_mem_map(int sysno, u32 srcid, u64 srcva, u32 dstid, u64 dstva, u64 perm)
     u64 *ppte;
     srcva = ROUNDDOWN(srcva, BY2PG);
     dstva = ROUNDDOWN(dstva, BY2PG);
+
     r = envid2env(srcid, &srcenv, 1);
     if (r < 0) {
         printf("[ERR] sys_mem_map envid2env\n");
         return r;
     }
+    
     ppage = page_lookup(srcenv->env_pgdir, srcva, &ppte, ENVX(srcenv->env_id));
     if (ppage == NULL) {
         printf("[ERR] sys_mem_map : page_lookup : [%l016x] : [%l016x] : [%l016x]\n", srcenv->env_pgdir, srcva, &ppte);
         return -1;
     }
 
-    // check pte_perm correct
-    r = check_page_pte_perm(srcid, ppage, (perm & PTE_RO), (perm & PTE_COW), (perm & PTE_LIBRARY));
-    if (r != 0) {
-        printf("[ERR] check_page_pte_perm\n");
-        return r;
-    }
+    // r = check_env_right(ENVX(envid), RIGHTS_MEM_MAP);
+    // if (r != 0) {
+    //     printf("[ERR] check_page_pte_perm\n");
+    //     return r;
+    // }
 
     r = envid2env(dstid, &dstenv, 1);
     if (r < 0) {
         printf("[ERR] sys_mem_map envid2env\n");
         return r;
     }
+    
     r = page_insert(dstenv->env_pgdir, ppage, dstva, perm, ENVX(dstenv->env_id));
     if (r < 0) {
         printf("[ERR] sys_mem_map page_insert\n");
@@ -100,12 +107,18 @@ int sys_mem_map(int sysno, u32 srcid, u64 srcva, u32 dstid, u64 dstva, u64 perm)
     return 0;
 }
 
+
 int sys_mem_unmap(int sysno, u32 envid, u64 va) {
-     
     int r;
     struct Env *env;
     struct Page *page;
     u64 *ppte;
+
+    r = check_env_right(ENVX(envid), RIGHTS_MEM_UNMAP);
+    if (r != 0) {
+        printf("[ERR] sys_mem_unmap: check_env_right failed\n");
+        return r;
+    }
 
     r = envid2env(envid, &env, 1);
     if (r < 0) {
@@ -119,23 +132,24 @@ int sys_mem_unmap(int sysno, u32 envid, u64 va) {
         return -1;
     }
     
-    // check remove_perm correct
-    r = check_page_remove_perm(envid, page);
-    if (r < 0) {
-        printf("[ERR] sys_mem_unmap check_page_remove_perm\n");
-        return r;
-    }
-
     page_remove(env->env_pgdir, va, ENVX(envid));
     return r;
 }
- 
 
-u32 sys_env_alloc() {
+
+u32 sys_env_alloc(u64 rights) {
     int r;
     struct Env *e;
-    int cpu_id = cpu_current_id();
-    r = env_alloc(&e, curenv[cpu_id]->env_id);
+    int cpu_id = cpu_current_id(); 
+
+    
+    r = check_env_right(ENVX(curenv[cpu_id]->env_id), RIGHTS_ENV_ALLOC);
+    if (r < 0) {
+        printf("[ERR] sys_env_alloc : check_env_right failed\n");
+        return r;
+    }
+
+    r = env_alloc(&e, curenv[cpu_id]->env_id, rights);
     if (r < 0) {
         printf("[ERR] sys_env_alloc : env_alloc\n");
         return r;
@@ -159,15 +173,23 @@ u32 sys_env_alloc() {
     return e->env_id;
 }
 
+
 int sys_set_env_status(int sysno, u32 envid, u32 status) {
     struct Env *env;
-    int ret;
+    int r = check_env_right(ENVX(envid), RIGHTS_SET_ENV_STATUS);
+    if (r < 0) {
+        printf("[ERR] sys_set_env_status : check_env_right failed\n");
+        return r;
+    }
+
     if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE && status != ENV_RUNNING) {
         return -E_INVAL;
     }
-    ret = envid2env(envid, &env, 0);
-    if (ret < 0)
-        return ret;
+
+    r = envid2env(envid, &env, 0);
+    if (r < 0)
+        return r;
+    // printf("env->env_status %d\tstatus %d\n", env->env_status, status);
     if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE) {
 		//printf("insert son to tail,envid = %d\n",envid);
 		LIST_INSERT_HEAD(&env_sched_list[env->env_pri], env, env_sched_link);
@@ -175,22 +197,45 @@ int sys_set_env_status(int sysno, u32 envid, u32 status) {
 	else if (status != ENV_RUNNABLE && env->env_status == ENV_RUNNABLE) {
 		LIST_REMOVE(env,env_sched_link);
 	}
+    else if (status == ENV_FREE && env->env_status == ENV_RUNNING) {
+        env->env_status = status;
+        LIST_REMOVE(env,env_sched_link);
+        sched_yield();
+    }
     env->env_status = status;
     return 0;
 }
 
+// todo
 u32 sys_getenvid() {
     int cpu_id = cpu_current_id();
-    return curenv[cpu_id]->env_id;
+    u32 env_id = curenv[cpu_id]->env_id;
+    int r = check_env_right(ENVX(env_id), RIGHTS_GET_ENV_ID);
+    if (r != 0) {
+        printf("[ERR] sys_getenvid : check_env_right failed\n");
+        return r;
+    }
+    return env_id;
 }
 
-void sys_yield() {
+void sys_yield(u32 env_id) {
+    int r = check_env_right(env_id, RIGHTS_YIELD);
+    if (r < 0) {
+        printf("[ERR] sys_yield : check_env_right failed\n");
+        return r;
+    }
+
     sched_yield();
 }
 
+// todo
 int sys_env_destroy(int sysno, u32 envid) {
-    int r;
     struct Env *e;
+    int r = check_env_right(envid, RIGHTS_ENV_DESTROY);
+    if (r < 0) {
+        printf("[ERR] sys_env_destroy : check_env_right failed\n");
+        return r;
+    }
     r = envid2env(envid, &e, 1);
     if (r < 0) {
         return r;
@@ -201,10 +246,14 @@ int sys_env_destroy(int sysno, u32 envid) {
 
 int sys_set_pgfault_handler(int sysno, u32 envid, u64 func, u64 xstacktop) {
     struct Env *env;
-    int ret;
-    ret = envid2env(envid, &env, 0);
-    if (ret < 0) {
-        return ret;
+    int r = check_env_right(ENVX(envid), RIGHTS_SET_PGFAULT_HANDLER);
+    if (r < 0) {
+        printf("[ERR] sys_set_env_status : check_env_right failed\n");
+        return r;
+    }
+    r = envid2env(envid, &env, 0);
+    if (r < 0) {
+        return r;
     }
         
     env->env_pgfault_handler = func;
@@ -222,7 +271,7 @@ void sys_ipc_recv(int sysno, u64 dstva) {
     curenv[cpu_id]->env_ipc_dstva = dstva;
     curenv[cpu_id]->env_ipc_recving = 1;
     curenv[cpu_id]->env_status = ENV_NOT_RUNNABLE;
-    sys_yield();
+    sched_yield();
 }
 
 int sys_ipc_can_send(int sysno, u32 envid, u64 value, u64 srcva, u64 perm) {

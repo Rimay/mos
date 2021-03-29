@@ -48,14 +48,15 @@ static void duppage(u32 envid, u64 va, u64 pte)
     }
 }
 
-int fork() {
+int fork(u64 rights) {
     u32 envid;
     int ret;
     u64 va, i, j, k, pte;
 
     set_pgfault_handler(pgfault);
     
-    envid = syscall_env_alloc();
+    // u64 rights = RIGHTS_ENV_ALLOC | RIGHTS_SET_ENV_STATUS | RIGHTS_GET_ENV_ID | RIGHTS_YIELD | RIGHTS_ENV_DESTROY | RIGHTS_SET_PGFAULT_HANDLER;
+    envid = syscall_env_alloc(rights);
     user_assert(envid >= 0);
     if (envid == 0) {
         env = &(envs[ENVX(syscall_getenvid())]);

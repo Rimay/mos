@@ -2,6 +2,7 @@
 #define RPI_LAB_SYSCALL_ALL_H
 
 #include <mmu.h>
+#include <types.h>
 
 struct Trapframe;
 
@@ -11,7 +12,7 @@ void sys_putchar(int sysno, char c);
 
 unsigned int sys_getenvid();
 
-void sys_yield();
+void sys_yield(u32 env_id);
 
 int sys_env_destroy(int sysno, unsigned int envid);
 
@@ -23,7 +24,7 @@ int sys_mem_map(int sysno, unsigned int srcid, unsigned long srcva, unsigned int
 
 int sys_mem_unmap(int sysno, unsigned int envid, unsigned long va);
 
-unsigned int sys_env_alloc();
+unsigned int sys_env_alloc(u64 rights);
 
 int sys_set_env_status(int sysno, unsigned int envid, unsigned int status);
 

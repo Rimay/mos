@@ -32,7 +32,7 @@ __attribute__((noreturn));
 /////////////////////////////////////////////////////////////
 //                          Fork                           //
 /////////////////////////////////////////////////////////////
-int fork();
+int fork(u64 rights);
 
 
 /////////////////////////////////////////////////////////////
@@ -40,13 +40,13 @@ int fork();
 /////////////////////////////////////////////////////////////
 void syscall_putchar(char c);
 unsigned int syscall_getenvid();
-void syscall_yield();
+void syscall_yield(unsigned int envid);
 int syscall_env_destroy(unsigned int envid);
 int syscall_set_pgfault_handler(unsigned int envid, void (*func)(void), unsigned long xstacktop);
 int syscall_mem_alloc(unsigned int envid, unsigned long va, unsigned long perm);
 int syscall_mem_map(unsigned int srcid, unsigned long srcva, unsigned int dstid, unsigned long dstva, unsigned long perm);
 int syscall_mem_unmap(unsigned int envid, unsigned long va);
-unsigned int syscall_env_alloc();
+unsigned int syscall_env_alloc(unsigned long rights);
 int syscall_set_env_status(unsigned int envid, unsigned int status);
 int syscall_set_trapframe(unsigned int envid, struct Trapframe *tf);
 void syscall_panic(char *msg);

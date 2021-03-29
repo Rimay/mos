@@ -1,0 +1,229 @@
+[
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include  -g   -DPLATFORM_QEMU -o CMakeFiles/mos_qemu.elf.dir/boot/start.S.o -c /home/yili/mos/boot/start.S",
+  "file": "/home/yili/mos/boot/start.S"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/boot/vm.c.o   -c /home/yili/mos/boot/vm.c",
+  "file": "/home/yili/mos/boot/vm.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/driver/uart.c.o   -c /home/yili/mos/driver/uart.c",
+  "file": "/home/yili/mos/driver/uart.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/init/main.c.o   -c /home/yili/mos/init/main.c",
+  "file": "/home/yili/mos/init/main.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include  -g   -DPLATFORM_QEMU -o CMakeFiles/mos_qemu.elf.dir/lib/asm.S.o -c /home/yili/mos/lib/asm.S",
+  "file": "/home/yili/mos/lib/asm.S"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/cap.c.o   -c /home/yili/mos/lib/cap.c",
+  "file": "/home/yili/mos/lib/cap.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/cpu.c.o   -c /home/yili/mos/lib/cpu.c",
+  "file": "/home/yili/mos/lib/cpu.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/env.c.o   -c /home/yili/mos/lib/env.c",
+  "file": "/home/yili/mos/lib/env.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/driver/gicv2.c.o   -c /home/yili/mos/driver/gicv2.c",
+  "file": "/home/yili/mos/driver/gicv2.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/driver/kclock.c.o   -c /home/yili/mos/driver/kclock.c",
+  "file": "/home/yili/mos/driver/kclock.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/kernel_elfloader.c.o   -c /home/yili/mos/lib/kernel_elfloader.c",
+  "file": "/home/yili/mos/lib/kernel_elfloader.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/pmap.c.o   -c /home/yili/mos/lib/pmap.c",
+  "file": "/home/yili/mos/lib/pmap.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/print.c.o   -c /home/yili/mos/lib/print.c",
+  "file": "/home/yili/mos/lib/print.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/printf.c.o   -c /home/yili/mos/lib/printf.c",
+  "file": "/home/yili/mos/lib/printf.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/driver/psci.c.o   -c /home/yili/mos/driver/psci.c",
+  "file": "/home/yili/mos/driver/psci.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/sched.c.o   -c /home/yili/mos/lib/sched.c",
+  "file": "/home/yili/mos/lib/sched.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/spin_lock.c.o   -c /home/yili/mos/lib/spin_lock.c",
+  "file": "/home/yili/mos/lib/spin_lock.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/syscall_all.c.o   -c /home/yili/mos/lib/syscall_all.c",
+  "file": "/home/yili/mos/lib/syscall_all.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_QEMU -std=gnu11 -o CMakeFiles/mos_qemu.elf.dir/lib/trap.c.o   -c /home/yili/mos/lib/trap.c",
+  "file": "/home/yili/mos/lib/trap.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include  -g   -DPLATFORM_VM -o CMakeFiles/mos_vm.elf.dir/boot/start.S.o -c /home/yili/mos/boot/start.S",
+  "file": "/home/yili/mos/boot/start.S"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/boot/vm.c.o   -c /home/yili/mos/boot/vm.c",
+  "file": "/home/yili/mos/boot/vm.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/driver/uart.c.o   -c /home/yili/mos/driver/uart.c",
+  "file": "/home/yili/mos/driver/uart.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/init/main.c.o   -c /home/yili/mos/init/main.c",
+  "file": "/home/yili/mos/init/main.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include  -g   -DPLATFORM_VM -o CMakeFiles/mos_vm.elf.dir/lib/asm.S.o -c /home/yili/mos/lib/asm.S",
+  "file": "/home/yili/mos/lib/asm.S"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/cap.c.o   -c /home/yili/mos/lib/cap.c",
+  "file": "/home/yili/mos/lib/cap.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/cpu.c.o   -c /home/yili/mos/lib/cpu.c",
+  "file": "/home/yili/mos/lib/cpu.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/env.c.o   -c /home/yili/mos/lib/env.c",
+  "file": "/home/yili/mos/lib/env.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/driver/gicv2.c.o   -c /home/yili/mos/driver/gicv2.c",
+  "file": "/home/yili/mos/driver/gicv2.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/driver/kclock.c.o   -c /home/yili/mos/driver/kclock.c",
+  "file": "/home/yili/mos/driver/kclock.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/kernel_elfloader.c.o   -c /home/yili/mos/lib/kernel_elfloader.c",
+  "file": "/home/yili/mos/lib/kernel_elfloader.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/pmap.c.o   -c /home/yili/mos/lib/pmap.c",
+  "file": "/home/yili/mos/lib/pmap.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/print.c.o   -c /home/yili/mos/lib/print.c",
+  "file": "/home/yili/mos/lib/print.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/printf.c.o   -c /home/yili/mos/lib/printf.c",
+  "file": "/home/yili/mos/lib/printf.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/driver/psci.c.o   -c /home/yili/mos/driver/psci.c",
+  "file": "/home/yili/mos/driver/psci.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/sched.c.o   -c /home/yili/mos/lib/sched.c",
+  "file": "/home/yili/mos/lib/sched.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/spin_lock.c.o   -c /home/yili/mos/lib/spin_lock.c",
+  "file": "/home/yili/mos/lib/spin_lock.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/syscall_all.c.o   -c /home/yili/mos/lib/syscall_all.c",
+  "file": "/home/yili/mos/lib/syscall_all.c"
+},
+
+{
+  "directory": "/home/yili/mos/build",
+  "command": "aarch64-elf-gcc  -I../include   -Wall -ffreestanding -mgeneral-regs-only -g   -DPLATFORM_VM -std=gnu11 -o CMakeFiles/mos_vm.elf.dir/lib/trap.c.o   -c /home/yili/mos/lib/trap.c",
+  "file": "/home/yili/mos/lib/trap.c"
+}
+]

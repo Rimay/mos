@@ -10,8 +10,8 @@ unsigned int syscall_getenvid() {
     return (unsigned int)msyscall(1, 0, 0, 0, 0, 0);
 }
 
-void syscall_yield() {
-    msyscall(2, 0, 0, 0, 0, 0);
+void syscall_yield(unsigned int envid) {
+    msyscall(2, envid, 0, 0, 0, 0);
 }
 
 int syscall_env_destroy(unsigned int envid) {
@@ -34,8 +34,8 @@ int syscall_mem_unmap(unsigned int envid, unsigned long va) {
     return (int)msyscall(7, envid, va, 0, 0, 0);
 }
 
-unsigned int syscall_env_alloc() {
-    return (unsigned int)msyscall(8, 0, 0, 0, 0, 0);
+unsigned int syscall_env_alloc(unsigned long rights) {
+    return (unsigned int)msyscall(8, rights, 0, 0, 0, 0);
 }
 
 int syscall_set_env_status(unsigned int envid, unsigned int status) {

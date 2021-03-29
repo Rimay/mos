@@ -57,10 +57,10 @@ extern struct Env *curenv[NCPU];	        // the current env
 extern struct Env_list env_sched_list[PRIORITY_NUM + 1]; // runnable env list
 
 void env_init(void);
-int env_alloc(struct Env **e, u32 parent_id);
+int env_alloc(struct Env **e, u32 parent_id, u64 rights);
 void env_free(struct Env *);
-void env_create(u_char *binary, u32 size);
-void env_create_priority(void *binary, u32 size, int priority);
+void env_create(u_char *binary, u32 size, u64 rights);
+void env_create_priority(void *binary, u32 size, int priority, u64 rights);
 void env_destroy(struct Env *e);
 int envid2env(u32 envid, struct Env **penv, int checkperm);
 void env_run(struct Env *e);

@@ -15,13 +15,13 @@ struct Env *curenv[NCPU];
 static struct Env_list env_free_list;
 struct Env_list env_sched_list[PRIORITY_NUM + 1];
 
-u_int mkenvid(struct Env *e) {
+u32 mkenvid(struct Env *e) {
     static u_long next_env_id = 0;
-    u_int idx = e - envs;
+    u32 idx = e - envs;
     return (++next_env_id << (1 + LOG2NENV)) | idx;
 }
 
-int envid2env(u_int envid, struct Env **penv, int checkperm) {
+int envid2env(u32 envid, struct Env **penv, int checkperm) {
     int cpu_id = cpu_current_id();
     struct Env *e;
     if (envid == 0) {
@@ -29,7 +29,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm) {
         return 0;
     }
     e = &envs[ENVX(envid)];
-    if (e->env_status == ENV_FREE || e->env_id != envid) {
+    if (e->env_status == ENV_FREE || ENVX(e->env_id) != ENVX(envid)) {
         *penv = 0;
         return -E_BAD_ENV;
     }
@@ -58,7 +58,7 @@ void env_init(void) {
 }
 
 
-int env_alloc(struct Env **newenv, u_int parent_id) {
+int env_alloc(struct Env **newenv, u32 parent_id, u64 rights) {
     int r;
     struct Page *p = NULL;
     struct Env *e = LIST_FIRST(&env_free_list);
@@ -79,10 +79,13 @@ int env_alloc(struct Env **newenv, u_int parent_id) {
 
     LIST_REMOVE(e, env_link);
     *newenv = e;
+
+    r = cap_set_env_rights(ENVX(e->env_id), rights);
+    assert(r == 0);
     return 0;
 }
 
-static int load_icode_mapper(u_long va, u_int sgsize, u_char *bin, u_int bin_size, void *user_data) {
+static int load_icode_mapper(u_long va, u32 sgsize, u_char *bin, u32 bin_size, void *user_data) {
     struct Env *env = (struct Env *) user_data;
     int env_id = ENVX(env->env_id);
     struct Page *p = NULL;
@@ -112,7 +115,7 @@ static int load_icode_mapper(u_long va, u_int sgsize, u_char *bin, u_int bin_siz
     return 0;
 }
 
-static void load_icode(struct Env *e, u_char *binary, u_int size) {
+static void load_icode(struct Env *e, u_char *binary, u32 size) {
     struct Page *p = NULL;
     u_long entry_point;
     u_long r = page_alloc(&p);
@@ -128,21 +131,21 @@ static void load_icode(struct Env *e, u_char *binary, u_int size) {
 }
 
 void
-env_create_priority(void *binary, unsigned int size, int priority)
+env_create_priority(void *binary, unsigned int size, int priority, u64 rights)
 {
     struct Env *e;
-    env_alloc(&e,0);
+    env_alloc(&e, 0, rights);
     // printf("env_create_priority env_id: %d\n", e->env_id);
     e->env_pri = priority;
     
-    load_icode(e,binary,size);
+    load_icode(e, binary, size);
     LIST_INSERT_HEAD(&env_sched_list[priority], e, env_sched_link);
 }
 
 void
-env_create(u_char *binary, unsigned int size)
+env_create(u_char *binary, unsigned int size, u64 rights)
 {
-    env_create_priority(binary,size,1);
+    env_create_priority(binary, size, 1, rights);
 }
 
 void env_free(struct Env *e) {
@@ -151,7 +154,7 @@ void env_free(struct Env *e) {
     u_long pdeno, pmeno, pteno;
     int cpuid = cpu_current_id();
     //printf("not free e le_prev = %08x\n",e->env_sched_link.le_prev);
-    printf("cpu %d [%08x] free env %08x\n", cpuid, curenv[cpuid] ? curenv[cpuid]->env_id : 0, e->env_id);
+    // printf("cpu %d [%08x] free env %08x\n", cpuid, curenv[cpuid] ? curenv[cpuid]->env_id : 0, e->env_id);
     for (pdeno = 0; pdeno < PDX(U_LIMIT); pdeno++) {
         if (!(e->env_pgdir[pdeno] & PTE_4KB)) {
             continue;
@@ -183,7 +186,7 @@ void env_free(struct Env *e) {
 }
 
 void env_destroy(struct Env *e) {
-    printf("env_destroy called\n");
+    // printf("env_destroy called\n");
     int cpu_id = e->cpu_id;
     env_free(e);
     if (curenv[cpu_id] == e) {

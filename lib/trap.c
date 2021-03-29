@@ -47,7 +47,7 @@ void handle_el0_syscall() {
         sys_set_return(result);
         break;
         case 2:
-            sys_yield();
+            sys_yield(a1);
             break;
         case 3:
             result = (u_long) sys_env_destroy(no, (u_int) a1);
@@ -70,7 +70,7 @@ void handle_el0_syscall() {
             sys_set_return(result);
             break;
         case 8:
-            result = (u_long) sys_env_alloc();
+            result = (u_long) sys_env_alloc(a1);
             sys_set_return(result);
             break;
         case 9:
@@ -101,7 +101,7 @@ void handle_el0_pgfault() {
     unsigned long bad_va;
     bad_va = get_far();
     int cpu_id = cpu_current_id();
-    printf("cpu %d handle pgfault at elr %l016x\n", cpu_id, get_elr());
+    // printf("cpu %d handle pgfault at elr %l016x\n", cpu_id, get_elr());
     if (curenv[cpu_id]->env_pgfault_handler == 0) {
         printf("\n[cpu %d Page fault]\n", cpu_id);
         printf("esr : [%08x]\n", get_esr());
@@ -127,7 +127,7 @@ void handle_el0_pgfault() {
        tf->elr = curenv[cpu_id]->env_pgfault_handler;
        tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);
        tf->regs[0] = bad_va;
-       printf("tf elf is %016x\n",tf->elr);
+    //    printf("tf elf is %016x\n",tf->elr);
    }
 }
 
