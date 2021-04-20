@@ -56,8 +56,8 @@ void main(u64 freemem)
         env_init();
         printf("env_init ok!\n");
 
-        cap_init();
-        printf("cap_init ok!\n");
+        // cap_init();
+        // printf("cap_init ok!\n");
 
         cpu_disable_irq();
         gicd_init();

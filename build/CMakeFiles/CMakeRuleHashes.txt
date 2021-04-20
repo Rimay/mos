@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-c8816cb2afb670e7d026361a1d3dd87f ../user/pingpong.bin
