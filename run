@@ -2,13 +2,13 @@
 
 bash clean
 
-echo "*** Compiling ***"
+echo "------------- Compiling -------------"
 mkdir build
 cd build
 cmake ..
 make 
 
-echo "*** Generating Image ***"
+echo "------------- Generating Image -------------"
 cd ..
 ./objcopy
 
@@ -19,3 +19,6 @@ qemu-system-aarch64 -M virt,gic-version=2 \
                     -kernel build/mos_qemu.img \
                     -display none \
                     -smp 1
+
+
+echo "------------- Finish -------------"

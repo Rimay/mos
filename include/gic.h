@@ -1,6 +1,6 @@
 #ifndef __GIC_H__
 #define __GIC_H__
-#include "types.h"
+#include "utils.h"
 
 #define GICD_BASE_KERN (0x8000000ul | 0xFFFFFF8000000000ul)
 #define GICC_BASE_KERN (0x8010000ul | 0xFFFFFF8000000000ul)
@@ -189,9 +189,6 @@ typedef struct
 void timer_gic_init(u_int cpu_id);
 void gicc_init();
 void gicd_init();
-void gicd_set_prio(u64 int_id, u_char prio);
-void gicd_set_enable(u64 int_id, u_int en);
-void gicd_set_trgt(u64 int_id, u_char trgt);
 void interrupts_arch_enable(u64 int_id, u_int en, u_int cpu_id);
 
 static inline unsigned long long bit_extract(u64 word, u64 off, u64 len)

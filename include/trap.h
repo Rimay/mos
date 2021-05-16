@@ -1,7 +1,9 @@
 #ifndef _TRAP_H_
 #define _TRAP_H_
 
-#include <types.h>
+#include <utils.h>
+
+#define CAP_MAX_CMD 15
 
 struct Trapframe
 {
@@ -12,4 +14,6 @@ struct Trapframe
 };
 
 extern struct Trapframe *trap_frames[];
+
+
 #endif

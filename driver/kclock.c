@@ -1,5 +1,5 @@
 #include <kclock.h>
-#include <types.h>
+#include <utils.h>
 
 #define ARCH_TIMER_CTRL_ENABLE (1 << 0)
 #define ARCH_TIMER_CTRL_IT_MASK (1 << 1)

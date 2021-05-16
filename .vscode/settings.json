@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "error.h": "c",
+        "cap.h": "c",
+        "utils.h": "c",
+        "printf.h": "c",
+        "stddef.h": "c",
+        "pcb.h": "c",
+        "trap.h": "c",
+        "mmu.h": "c",
+        "page.h": "c",
+        "stdbool.h": "c",
+        "lib.h": "c",
+        "syscall_all.h": "c",
+        "print.h": "c",
+        "uart.h": "c",
+        "spin_lock.h": "c",
+<<<<<<< HEAD
+        "stdarg.h": "c",
+        "kerelf.h": "c"
+=======
+        "stdarg.h": "c"
+>>>>>>> 5276de7cc76c9f2a7bf45ba0f0a33a799331b4cb
+    }
+}

@@ -1,5 +1,5 @@
 #include <mmu.h>
-#include <types.h>
+#include <utils.h>
 
 #define INIT __attribute__((section(".text.init")))
 
@@ -23,7 +23,7 @@ INIT static void *boot_alloc(u_int n, u_int align, int clear) {
         clear: if clear, initialise these n byte to 0
     */
     u64 alloced_mem;
-    freemem = ROUND(freemem, align);
+    freemem = ROUND_UP(freemem, align);
     alloced_mem = freemem;
     freemem += n;
     if (clear) {
@@ -75,7 +75,7 @@ extern char kernel_end[];
 
 INIT u64 vm_init(u64 *pgdir) {
     boot_bzero(pgdir, BY2PG);
-    freemem = ROUND(((u32) (u64) kernel_end), BY2PG);
+    freemem = ROUND_UP(((u32) (u64) kernel_end), BY2PG);
     // Map normal memory
     boot_map_segment(pgdir,
                      PHYSICAL_MEMORY_START,

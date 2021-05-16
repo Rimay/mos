@@ -1,6 +1,6 @@
 .data
-.global envs
-envs: .dword 0x80000000
+.global pcbs
+pcbs: .dword 0x80000000
 .global pages
 pages: .dword 0x90000000
 

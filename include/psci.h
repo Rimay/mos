@@ -1,7 +1,7 @@
 #ifndef _PSCI_H_
 #define _PSCI_H_
 
-#include "types.h"
+#include "utils.h"
 
 int psci_cpu_on(unsigned int cpu, u_int entry_point);
 
