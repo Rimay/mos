@@ -1,7 +1,7 @@
 #ifndef RPI_EVO_INCLUDE_MMIO_H
 #define RPI_EVO_INCLUDE_MMIO_H
 
-#include <types.h>
+#include <utils.h>
 
 #define MMIO_KERN 0xFFFFFF8000000000ull
 

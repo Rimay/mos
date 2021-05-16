@@ -1,7 +1,7 @@
 #ifndef _CPU_H_
 #define _CPU_H_
 
-#include <types.h>
+#include <utils.h>
 #define NCPU 4
 
 u8 cpu_current_id();

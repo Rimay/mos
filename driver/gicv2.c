@@ -10,21 +10,7 @@ volatile gicc_t* gicc = (volatile gicc_t *) GICC_BASE_KERN;
 
 
 void interrupts_arch_enable(u64 int_id, u_int en,u_int cpu_id) {
-    gicd_set_enable(int_id, en);
-    gicd_set_prio(int_id, 0x7F);
-    gicd_set_trgt(int_id, 1U << cpu_id);
-}
-
-void gicd_set_trgt(u64 int_id, u_char trgt) {
-    u64 reg_ind = GIC_TARGET_REG(int_id);
-    u64 off = GIC_TARGET_OFF(int_id);
-    u_int mask = BIT_MASK(off, GIC_TARGET_BITS);
-
-    gicd->ITARGETSR[reg_ind] =
-        (gicd->ITARGETSR[reg_ind] & ~mask) | ((trgt << off) & mask);
-}
-
-void gicd_set_enable(u64 int_id, u_int en) {
+    // gicd_set_enable
     u64 reg_ind = GIC_INT_REG(int_id);
     u64 bit = GIC_INT_MASK(int_id);
 
@@ -34,17 +20,22 @@ void gicd_set_enable(u64 int_id, u_int en) {
         gicd->ICENABLER[reg_ind] = bit;
     }
 
-}
-
-void gicd_set_prio(u64 int_id, u_char prio) {
-    u64 reg_ind = GIC_PRIO_REG(int_id);
+    // gicd_set_prio
+    reg_ind = GIC_PRIO_REG(int_id);
     u64 off = GIC_PRIO_OFF(int_id);
     u64 mask = BIT_MASK(off, GIC_PRIO_BITS);
 
     gicd->IPRIORITYR[reg_ind] =
-        (gicd->IPRIORITYR[reg_ind] & ~mask) | ((prio << off) & mask);
-}
+        (gicd->IPRIORITYR[reg_ind] & ~mask) | ((0x7F << off) & mask);
 
+    // gicd_set_trgt    
+    reg_ind = GIC_TARGET_REG(int_id);
+    off = GIC_TARGET_OFF(int_id);
+    mask = BIT_MASK(off, GIC_TARGET_BITS);
+
+    gicd->ITARGETSR[reg_ind] =
+        (gicd->ITARGETSR[reg_ind] & ~mask) | (((1U << cpu_id) << off) & mask);
+}
 
 void gicd_init() {
     // get max num of SPIs

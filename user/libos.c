@@ -3,16 +3,17 @@
 extern void umain();
 
 void exit(void) {
-    syscall_env_destroy(0);
+    syscall_pcb_destroy(0);
 }
 
-struct Env *env;
+struct Pcb *pcb;
 
 void libmain(int argc, char **argv) {
-    env = 0;
-    int envid;
-    envid = syscall_getenvid();
-    env = &envs[ENVX(envid)];
+    // pcb = 0;
+    // int pcbid;
+    // pcbid = syscall_getpcbid();
+    // pcb = &pcbs[ENVX(pcbid)];
+
     umain(argc, argv);
     exit();
 }

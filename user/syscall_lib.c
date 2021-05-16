@@ -6,7 +6,7 @@ void syscall_putchar(char c) {
     msyscall(0, c, 0, 0, 0, 0);
 }
 
-unsigned int syscall_getenvid() {
+unsigned int syscall_getpcbid() {
     return (unsigned int)msyscall(1, 0, 0, 0, 0, 0);
 }
 
@@ -14,44 +14,44 @@ void syscall_yield() {
     msyscall(2, 0, 0, 0, 0, 0);
 }
 
-int syscall_env_destroy(unsigned int envid) {
-    return (int)msyscall(3, envid, 0, 0, 0, 0);
+int syscall_pcb_destroy(unsigned int pcbid) {
+    return (int)msyscall(3, pcbid, 0, 0, 0, 0);
 }
 
-int syscall_set_pgfault_handler(unsigned int envid, void (*func)(void), unsigned long xstacktop) {
-    return (int)msyscall(4, envid, (unsigned long)func, xstacktop, 0, 0);
+int syscall_set_pgfault_handler(unsigned int pcbid, void (*func)(void), unsigned long xstacktop) {
+    return (int)msyscall(4, pcbid, (unsigned long)func, xstacktop, 0, 0);
 }
 
-int syscall_mem_alloc(unsigned int envid, unsigned long va, unsigned long perm) {
-    return (int)msyscall(5, envid, va, perm, 0, 0);
+int syscall_mem_alloc(unsigned int pcbid, unsigned long va, unsigned long perm) {
+    return (int)msyscall(5, pcbid, va, perm, 0, 0);
 }
 
 int syscall_mem_map(unsigned int srcid, unsigned long srcva, unsigned int dstid, unsigned long dstva, unsigned long perm) {
     return (int)msyscall(6, srcid, srcva, dstid, dstva, perm);
 }
 
-int syscall_mem_unmap(unsigned int envid, unsigned long va) {
-    return (int)msyscall(7, envid, va, 0, 0, 0);
+int syscall_mem_unmap(unsigned int pcbid, unsigned long va) {
+    return (int)msyscall(7, pcbid, va, 0, 0, 0);
 }
 
-unsigned int syscall_env_alloc() {
+unsigned int syscall_pcb_alloc() {
     return (unsigned int)msyscall(8, 0, 0, 0, 0, 0);
 }
 
-int syscall_set_env_status(unsigned int envid, unsigned int status) {
-    return (int)msyscall(9, envid, status, 0, 0, 0);
+int syscall_set_pcb_status(unsigned int pcbid, unsigned int status) {
+    return (int)msyscall(9, pcbid, status, 0, 0, 0);
 }
 
-int syscall_set_trapframe(unsigned int envid, struct Trapframe *tf) {
-    return (int)msyscall(10, envid, (unsigned long)tf, 0, 0, 0);
+int syscall_set_trapframe(unsigned int pcbid, struct Trapframe *tf) {
+    return (int)msyscall(10, pcbid, (unsigned long)tf, 0, 0, 0);
 }
 
 void syscall_panic(char *msg) {
     msyscall(11, (unsigned long)msg, 0, 0, 0, 0);
 }
 
-int syscall_ipc_can_send(unsigned int envid, unsigned long value, unsigned long srcva, unsigned long perm) {
-    return (int)msyscall(12, envid, value, srcva, perm, 0);
+int syscall_ipc_can_send(unsigned int pcbid, unsigned long value, unsigned long srcva, unsigned long perm) {
+    return (int)msyscall(12, pcbid, value, srcva, perm, 0);
 }
 
 void syscall_ipc_recv(unsigned long dstva) {

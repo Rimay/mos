@@ -1,9 +1,10 @@
 #ifndef _KER_ELF_H
 #define _KER_ELF_H
 
-#include <types.h>
+#include <utils.h>
+#include "pcb.h"
 
-/* 64-bit ELF base types. */
+/* 64-bit ELF base type. */
 typedef unsigned long Elf64_Addr;
 typedef unsigned short Elf64_Half;
 typedef short Elf64_SHalf;
@@ -77,6 +78,7 @@ typedef struct elf64_phdr
 #define SHF_EXECINSTR 0x4
 #define SHF_MASKPROC  0xf0000000
 
-int load_elf(u_char *binary, int size, u_long *entry_point, void *user_data,
-             int (*map)(u_long va, u_int sgsize, u_char *bin, u_int bin_size, void *user_data));
+
+void load_icode(struct Pcb *e, u8 *binary, u32 size);
+
 #endif /* kerelf.h */
