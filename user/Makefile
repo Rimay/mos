@@ -4,9 +4,11 @@ CC     := $(CROSS)gcc
 LD     := $(CROSS)ld
 
 INCLUDES = -I../include/ -I./
-USERLIB := libos.o print.o printf.o  syscall_lib.o 
+USERLIB := allocator.o fork.o u_print.o u_printf.o u_syscall.o u_utils.o
 
-all: hello.bin   # 这里填用户程序名，与 user目录的 pingpong.c对应
+# todo: ps 放到user/目录下一个新文件夹
+#
+all:  client.bin
 
 %.bin: %.elf
 	$(LD) -r -b binary -o $@ $<

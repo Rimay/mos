@@ -2,9 +2,10 @@
 #include "mmu.h"
 #include "pcb.h"
 #include "page.h"
+#include "dprintf.h"
 
 extern struct cte *pagecn;
-extern u64 pagecn_slot_cnt;
+extern u64 p_pcnslot_cnt;
 
 
 static inline int is_elf_format(u8 *binary) {
@@ -21,28 +22,30 @@ static int load_icode_mapper(u64 va, u_int mem_size, u8 *bin, u_int file_size, v
     struct Pcb *pcb = (struct Pcb *) pp;
     u64 i;
     u64 offset = va - ROUND_DOWN(va, BASE_PAGE_SIZE);
+    // printf("\t\tload_icode_mapper va: 0x%lx\tfile size: 0x%lx\tmem size: 0x%lx\n", va, file_size, mem_size);
+
     for (i = 0; i < file_size; i += BASE_PAGE_SIZE) {
-        // alloc new page
-        u64 base_addr = alloc_page(pagecn, &pagecn_slot_cnt, ObjType_Page);
+        u64 pa = alloc_page(pagecn, &p_pcnslot_cnt, ObjType_Page);
         
-        // map new page to pcb's pgdir
-        map_ptable(pagecn, &pagecn_slot_cnt, (u64 *)pcb->pg_dir, 
-                    va-offset+i, base_addr, PTE_USER | PTE_RW);
-        
-        // copy user data to new page
-        memcpy((void *) pa2kva(base_addr) + offset, bin+i, MIN(BY2PG, file_size - i));
-        // printf("\t\tstage 1: i %d  slot_cnt %d\n", i, pagecn_slot_cnt);
+        map_ptable((u64 *)pcb->pg_dir, 
+                    va-offset+i, pa, PTE_USER | PTE_RW, pagecn, &p_pcnslot_cnt);
+        // printf("\t\telf map va: 0x%lx\tpa: 0x%lx\n", va-offset+i, pa);
+        // u64 *pte = walk_pgdir((u64 *)pcb->pg_dir, va - offset + i);
+        // printf("\t\tfind pa: 0x%lx\n", PTE_ADDR(*pte));
+
+        memcpy((void *) pa2kva(pa) + offset, bin+i, MIN(BY2PG, file_size - i));
+        // printf("\t\tstage 1: i %d  slot_cnt %d\n", i, p_pcnslot_cnt);
     }
     while (i < mem_size) {
          // alloc new page
-        u64 base_addr = alloc_page(pagecn, &pagecn_slot_cnt, ObjType_Page);
+        u64 pa = alloc_page(pagecn, &p_pcnslot_cnt, ObjType_Page);
         
         // map new page to pcb's pgdir
-        map_ptable(pagecn, &pagecn_slot_cnt, (u64 *)pcb->pg_dir, 
-                    va-offset+i, base_addr, PTE_USER | PTE_RW);
+        map_ptable((u64 *)pcb->pg_dir,  va-offset+i, pa, \
+                    PTE_USER | PTE_RW, pagecn, &p_pcnslot_cnt);
         
         i += BASE_PAGE_SIZE;
-        // printf("\t\tstage 2: i %d  slot_cnt %d\n", i, pagecn_slot_cnt);
+        // printf("\t\tstage 2: i %d  slot_cnt %d\n", i, p_pcnslot_cnt);
     }
     return 0;
 }
@@ -80,10 +83,10 @@ int load_elf(u8 *binary, int size, u64 *entry_point, void *pcb) {
 }
 
 
-void load_icode(struct Pcb *p, u8 *binary, u32 size) {
+void load_elf_img(struct Pcb *p, u8 *binary, u32 size) {
     u64 entry_point;
     int r = load_elf(binary, size, &entry_point, p);
     assert(r >= 0);
     p->pcb_tf.elr = entry_point;
-    printf("\t\tentry point is %lx\n", entry_point);
+    dprintf("elf entry point is %lx\n", entry_point);
 }

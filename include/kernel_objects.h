@@ -39,32 +39,23 @@ struct VNode_l0 {
     u64 base;
 };
 
-struct VNode_l0_Mapping {   
-    struct capability* cap;
-    struct cte* ptable;
-    u16 entry;
-    u16 pte_count;
-};
-
 struct VNode_l1 {
     u64 base;
-};
-struct VNode_l1_Mapping {   
-    struct capability* cap;
-    struct cte* ptable;
-    u16 entry;
-    u16 pte_count;
 };
 
 struct VNode_l2 {
     u64 base;
 };
 
-struct VNode_l2_Mapping {   
-    struct capability* cap;
-    struct cte* ptable;
-    u16 entry;
-    u16 pte_count;
+
+struct Endpoint {
+    u64 head;   // Struct Pcb pointer addr 
+    u64 tail;   // Struct Pcb pointer addr 
+    u64 len;
+    u64 state;
 };
+
+
+
 
 #endif

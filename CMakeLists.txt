@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -ffreestanding -mgeneral-regs-only")
 include_directories(include)
 
 set(USER_PROGRAM
-        ${CMAKE_CURRENT_SOURCE_DIR}/user/hello.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/user/client.bin
 )
 
 add_executable(mos_qemu.elf
@@ -36,21 +36,21 @@ add_executable(mos_qemu.elf
         include/queue.h
         include/sched.h
         include/spin_lock.h
-        include/syscall_all.h
+        include/syscall.h
         include/trap.h
         include/uart.h
-        kernel/main.c
         kernel/asm.S
         kernel/cap.c
         kernel/cpu.c
         kernel/kernel_elfloader.c
+        kernel/main.c
         kernel/page.c
         kernel/pcb.c
         kernel/print.c
         kernel/printf.c
         kernel/sched.c
         kernel/spin_lock.c
-        kernel/syscall_all.c
+        kernel/syscall.c
         kernel/trap.c
         kernel/utils.c
         ${USER_PROGRAM}

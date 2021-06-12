@@ -1,15 +1,29 @@
-#include "lib.h"
+#include "mos.h"
 
-void f1()
-{
-    int x = 0;
-    writef("x addr: 0x%lx\n", &x);
-}
+struct vka v;
 
 
 void umain(void)
 {
     writef("hello world!\n");
-    f1();
+    
+    vka_init(&v);
+
+    int t = fork(&v);
+    if (t == 0) {
+        writef("---------------------------------------\n");
+        writef("child process success!\n");
+        writef("---------------------------------------\n");
+
+        while (1);
+    }
+    else {
+        writef("---------------------------------------\n");
+        writef("parent process success! child pid: %d\n", t);
+        writef("---------------------------------------\n");
+
+
+        while (1);
+    }
 }
 

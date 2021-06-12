@@ -4,20 +4,18 @@
 #include "cap.h"
 #include "utils.h"
 #include "mmu.h"
-
+#include "pcb.h"
+#include "dprintf.h"
 
 struct bootinfo *bi;
-
-// extern struct Pcb *init_pcb;
-// extern u32 pagecn_slot_cnt;
 extern u64 phy_alloc_addr;
- 
+
 
 static errval_t dcopy_cap(struct capability *dest, struct capability *src)
 {
     assert(src  != NULL);
     assert(dest != NULL);
-    assert(dest->type == ObjType_Null);
+    // assert(dest->type == ObjType_Null);
 
     memcpy(dest, src, sizeof(struct capability));
     return SYS_ERR_OK;
@@ -27,33 +25,22 @@ static errval_t dcopy_cap(struct capability *dest, struct capability *src)
 /*
  * lookup a capability given a cnode capability
 */
-errval_t cnode_lookup_cap(struct capability *rootcn, u64 cptr,
-                         u64 level, struct capability **ret_cap, u8 rights)
+errval_t cnode_lookup_cap(struct capability *rootcn, u64 l1index, u64 l2index, u64 level, 
+                        struct capability **ret_cap, u8 rights)
 {
-    struct cte *ret_cte = NULL;
-
-    u64 l1index, l2index;
-    l1index = (cptr >> L2CNODE_BITS) & MASK(CPTR_BITS-L2CNODE_BITS);
-    l2index = cptr & MASK(L2CNODE_BITS);
-
-    assert(ret_cte != NULL);
-    assert(rootcn != NULL);
+    assert(rootcn != NULL && rootcn->type == ObjType_L1cnode);
+    assert(l1index < L1CNODE_SLOTNUM);
+    assert(l2index < L2CNODE_SLOTNUM);
     assert(level <= 2);
+    assert((rootcn->rights & rights) == rights);
 
-    // level == 0 means that we do not do any resolution and just return the cte for rootcn.
+    // level == 0 means we do not do any resolution and just return the cte for rootcn.
     if (level == 0) {
         *ret_cap = rootcn;
         return SYS_ERR_OK;
     }
     
-    assert(rootcn->type == ObjType_L1cnode);
-    /*
-     * todo: cnode_get_slots 
-     */
-    // assert(l1index < cnode_get_slots(rootcn));
-    assert((rootcn->rights & rights) == rights);
-    
-    // level == 1 means that we terminate after looking up the slot in the L1 cnode.
+    // level == 1 means we terminate after looking up the slot in the L1 cnode.
     struct cte *l2cnode = caps_locate_slot(rootcn->u.l1cnode.base, l1index);
     if (level == 1) {
         assert(l2cnode->cap.type != ObjType_Null);
@@ -62,13 +49,12 @@ errval_t cnode_lookup_cap(struct capability *rootcn, u64 cptr,
     }
 
     assert(l2cnode->cap.type == ObjType_L2cnode);
-    assert(l2index < L2CNODE_BITS);
     assert((l2cnode->cap.rights & rights) == rights);
 
     struct cte *cte = caps_locate_slot(l2cnode->cap.u.l2cnode.base, l2index);
     assert(cte->cap.type != ObjType_Null);
-    *ret_cap = &(cte->cap);
 
+    *ret_cap = &(cte->cap);
     return SYS_ERR_OK;
 }
 
@@ -76,8 +62,8 @@ errval_t cnode_lookup_cap(struct capability *rootcn, u64 cptr,
 /* 
  * obj_size is 0 for non-sized utils (e.g. VNodes) 
 */
-errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes,
-                u64 obj_size, u64 obj_num, u8 core_id, struct cte *dest_caps)
+errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes, u64 obj_size, 
+                                u64 obj_num, u8 core_id, struct cte *dest_caps)
 {
     assert(type != ObjType_Null);
     assert(dest_caps != NULL);
@@ -91,8 +77,7 @@ errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes,
     errval_t err = SYS_ERR_OK;
     u64 i = 0;
 
-    switch (type)
-    {
+    switch (type) {
     case ObjType_Phymem:
     {
         for (i = 0; i < obj_num; i++) {
@@ -192,7 +177,22 @@ errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes,
     {
         assert(obj_size == objsize(ObjType_Dispatcher));
         for(i = 0; i < obj_num; i++) {
-            temp_cap.u.dispatcher.e = (struct Pcb *) (addr + i * obj_size);
+            temp_cap.u.dispatcher.e = (struct Pcb *) (addr + i * obj_size);     // todo e is a pa addr
+            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
+            if (err_is_fail(err)) {
+                break;
+            }
+        }
+        break;
+    }
+    case ObjType_Endpoint:
+    {
+        assert(obj_size == objsize(ObjType_Endpoint));
+        for(i = 0; i < obj_num; i++) {
+            temp_cap.u.endpoint.head = 0;
+            temp_cap.u.endpoint.tail = 0;
+            temp_cap.u.endpoint.len = 0;
+            temp_cap.u.endpoint.state = EP_State_Idle;
             err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
             if (err_is_fail(err)) {
                 break;
@@ -211,13 +211,7 @@ errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes,
         }
         return err;
     }
-    else {
-        // Set the owner for all the new caps
-        // for (size_t j = 0; j < i; j++) {
-        //     dest_caps[j].mdbnode.owner = owner;
-        // }
-        return SYS_ERR_OK;
-    }
+    return SYS_ERR_OK;
 }
 
 
@@ -229,6 +223,7 @@ void cap_init_1(u64 freemem)
     // alloc 4KB for bootinfo
     u64 addr = alloc_phys_aligned(BOOT_INFO_SIZE, BASE_PAGE_SIZE);
     bi = (struct bootinfo *)pa2kva(addr);
+    dprintf("bootinfo addr: 0x%lx\n", bi);
 }
 
 void cap_init_2()

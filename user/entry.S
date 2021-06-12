@@ -1,11 +1,9 @@
 .data
+
 .global pcbs
 pcbs: .dword 0x80000000
 .global pages
 pages: .dword 0x90000000
-
-.global __pgfault_handler
-__pgfault_handler: .dword 0
 
 .global vpt
 vpt: .dword 0x7000000000UL
@@ -21,12 +19,12 @@ fsipcbuf: .space 4096
 __sp_user: .dword 0
 __elr_user: .dword 0
 
-.extern libmain
+.extern umain
 
 .text
 .global _start
 _start:
-	bl	libmain
+	bl	umain
 	nop
 
 .global msyscall
@@ -36,7 +34,7 @@ msyscall:
 
 .global __asm_pgfault_handler
 __asm_pgfault_handler:
-    ldr x19, __pgfault_handler
+    ldr x19, =pgfault
     blr x19
     nop
     back:
@@ -70,3 +68,5 @@ __asm_pgfault_handler:
     adr x18, __elr_user
     ldr x18, [x18]
     br x18
+
+

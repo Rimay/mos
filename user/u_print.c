@@ -1,15 +1,4 @@
-/*
- * Copyright (C) 2001 MontaVista Software Inc.
- * Author: Jun Sun, jsun@mvista.com or jsun@junsun.net
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
- */
-
-#include	<print.h>
+#include <mos.h>
 
 /* macros */
 #define		IsDigit(x)	( ((x) >= '0') && ((x) <= '9') )
@@ -26,8 +15,7 @@ static const char user_theFatalMsg[] = "fatal error in user_lp_Print!";
 /* -*-
  * A low level printf() function.
  */
-void
-user_lp_Print(void (*output)(void *, const char *, int),
+void user_lp_Print(void (*output)(void *, const char *, int),
 			  void *arg,
 			  const char *fmt,
 			  va_list ap)
@@ -228,8 +216,7 @@ user_lp_Print(void (*output)(void *, const char *, int),
 
 
 /* --------------- local help functions --------------------- */
-int
-user_PrintChar(char *buf, char c, int length, int ladjust)
+int user_PrintChar(char *buf, char c, int length, int ladjust)
 {
 	int i;
 
@@ -254,8 +241,7 @@ user_PrintChar(char *buf, char c, int length, int ladjust)
 	return length;
 }
 
-int
-user_PrintString(char *buf, char *s, int length, int ladjust)
+int user_PrintString(char *buf, char *s, int length, int ladjust)
 {
 	int i;
 	int len = 0;
@@ -290,8 +276,7 @@ user_PrintString(char *buf, char *s, int length, int ladjust)
 	return length;
 }
 
-int
-user_PrintNum(char *buf, unsigned long u, int base, int negFlag,
+int user_PrintNum(char *buf, unsigned long u, int base, int negFlag,
 			  int length, int ladjust, char padc, int upcase)
 {
 	/* algorithm :

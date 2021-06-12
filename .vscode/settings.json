@@ -15,11 +15,8 @@
         "print.h": "c",
         "uart.h": "c",
         "spin_lock.h": "c",
-<<<<<<< HEAD
         "stdarg.h": "c",
-        "kerelf.h": "c"
-=======
-        "stdarg.h": "c"
->>>>>>> 5276de7cc76c9f2a7bf45ba0f0a33a799331b4cb
+        "kerelf.h": "c",
+        "mos.h": "c"
     }
 }

@@ -79,6 +79,6 @@ typedef struct elf64_phdr
 #define SHF_MASKPROC  0xf0000000
 
 
-void load_icode(struct Pcb *e, u8 *binary, u32 size);
+void load_elf_img(struct Pcb *e, u8 *binary, u32 size);
 
 #endif /* kerelf.h */

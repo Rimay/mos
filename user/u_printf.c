@@ -1,6 +1,5 @@
-#include "lib.h"
+#include "mos.h"
 
-void halt(void);
 
 static void user_myoutput(void *arg, const char *s, int l) {
     int i;

@@ -1,12 +1,16 @@
 #include <printf.h>
-#include <syscall_all.h>
+#include <syscall.h>
 #include <utils.h>
 #include <pcb.h>
 #include <cpu.h>
 #include "cap.h"
-
+#include "page.h"
+#include "dprintf.h"
 
 struct Trapframe *trap_frames[NCPU];
+extern struct bootinfo *bi;
+extern u64 forked_cte;
+
 
 u64 get_el() {
     u64 r;
@@ -33,19 +37,14 @@ u64 get_far() {
 }
 
 void handle_el0_pgfault() {
-    // unsigned long bad_va;
-    // bad_va = get_far();
-    int cpu_id = cpu_current_id();
-    printf("cpu %d handle pgfault at elr %l016x\n", cpu_id, get_elr());
-    printf("\n[cpu %d Page fault]\n", cpu_id);
-    printf("esr : [%08x]\n", get_esr());
-    printf("va  : [%l016x]\n", get_far());
-    printf("elr  : [%l016x]\n", get_elr());
-    while (1) {
-        asm volatile ("wfi");
-    }
-    
-    // if (curpcb[cpu_id]->pgfault_handler == 0) {
+    u8 cpu_id = cpu_current_id();
+    u64 bad_va = get_far();
+    u64 *pte = walk_pgdir((u64 *)curpcb[cpu_id]->pg_dir, bad_va);
+
+    dprintf("+++++++++++++ page fault occured +++++++++++++\n");
+    dprintf("bad va: 0x%lx  *pte: 0x%lx\n", bad_va, *pte);
+    dprintf("++++++++++++++++++++++++++++++++++++++++++++++\n");
+    if (curpcb[cpu_id]->pgfault_handler == 0) {
         printf("\n[cpu %d Page fault]\n", cpu_id);
         printf("esr : [%08x]\n", get_esr());
         printf("va  : [%l016x]\n", get_far());
@@ -53,25 +52,34 @@ void handle_el0_pgfault() {
         while (1) {
             asm volatile ("wfi");
         }
-//    } else {
-//        u64 *pte;
-//        pgdir_walk(curpcb[cpu_id]->pg_dir, bad_va, 0, &pte, curpcb[cpu_id]->pid);
-//        if ((*pte & PTE_COW) == 0) {
-//            printf("\n[cpu %d Page fault]\n", cpu_id);
-//            printf("esr : [%08x]\n", get_esr());
-//            printf("va  : [%l016x]\n", get_far());
-//            printf("elr  : [%l016x]\n", get_elr());
-//            while (1) {
-//                asm volatile ("wfi");
-//            }
-//        }
-//        struct Trapframe *tf = trap_frames[cpu_id];
-//        memcpy((void *) (U_XSTACK_TOP - sizeof(struct Trapframe)), tf, sizeof(struct Trapframe));
-//        tf->elr = curpcb[cpu_id]->pgfault_handler;
-//        tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);
-//        tf->regs[0] = bad_va;
-//        printf("tf elf is %016x\n",tf->elr);
-//    }
+   }
+   else {
+       if ((*pte & PTE_COW) == 0) {
+           printf("\n[cpu %d Page fault]\n", cpu_id);
+           printf("esr : [%08x]\n", get_esr());
+           printf("va  : [%l016x]\n", get_far());
+           printf("elr  : [%l016x]\n", get_elr());
+           while (1) {
+               asm volatile ("wfi");
+           }
+       }
+
+       /*
+        * alloc a trapframe in user space to store current tf
+        * elr -> __asm_pgfault_handler
+        * sp  -> U_XSTACK_TOP - sizeof(struct Trapframe) (to restore current tf in entry.S(user code))
+        */
+       struct Trapframe *tf = trap_frames[cpu_id];
+       memcpy((void *) (U_XSTACK_TOP - sizeof(struct Trapframe)), tf, sizeof(struct Trapframe));
+
+       tf->elr = curpcb[cpu_id]->pgfault_handler;
+       tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);       
+       tf->regs[0] = kva2pa((u64)&bi->init_pcb_cte);
+       tf->regs[1] = kva2pa(forked_cte);
+       tf->regs[2] = bad_va;
+       
+    //    printf("new_elr: 0x%lx\n", tf->elr);
+   }
 }
 
 void handle_el0_sync() {
@@ -118,73 +126,83 @@ void handle_err() {
     }
 }
 
-typedef void (*invocation_t)(u64, u64, u64, u64, u64, u64, u64, u64);
 
-static invocation_t invocations[ObjType_Num][CAP_MAX_CMD] = {
-    [ObjType_L1cnode] = {
-        [CNodeCmd_Copy]   = handle_copy,
-        [CNodeCmd_Mint]   = handle_mint,
-        [CNodeCmd_Create] = handle_create,
-        [CNodeCmd_Delete] = handle_delete,
-        [CNodeCmd_Revoke] = handle_revoke,
-        [CNodeCmd_GetState] = handle_get_state,
-        [CNodeCmd_GetSize] = handle_get_size,
-        [CNodeCmd_Resize] = handle_resize,
-        [CNodeCmd_CapIdentify] = handle_cap_identify,
-    },
-    [ObjType_VNode_l0] = {
-        [VNodeCmd_Map]   = handle_map,
-        [VNodeCmd_Unmap] = handle_unmap,
-    },
-    [ObjType_VNode_l1] = {
-        [VNodeCmd_Map]   = handle_map,
-        [VNodeCmd_Unmap] = handle_unmap,
-    },
-    [ObjType_VNode_l2] = {
-        [VNodeCmd_Map]   = handle_map,
-        [VNodeCmd_Unmap] = handle_unmap,
-    },
-    [ObjType_Frame_Mapping] = {
-        [MappingCmd_Destroy] = handle_mapping_destroy,
-        [MappingCmd_Modify] = handle_mapping_modify,
-    },
-    [ObjType_VNode_l0_Mapping] = {
-        [MappingCmd_Destroy] = handle_mapping_destroy,
-        [MappingCmd_Modify] = handle_mapping_modify,
-    },
-    [ObjType_VNode_l1_Mapping] = {
-        [MappingCmd_Destroy] = handle_mapping_destroy,
-        [MappingCmd_Modify] = handle_mapping_modify,
-    },
-    [ObjType_VNode_l2_Mapping] = {
-        [MappingCmd_Destroy] = handle_mapping_destroy,
-        [MappingCmd_Modify] = handle_mapping_modify,
-    },
-    [ObjType_Dispatcher] = {
-        [DispatcherCmd_Setup]       = handle_dispatcher_setup,
-        [DispatcherCmd_Properties]  = handle_dispatcher_properties,
-    },
-    [ObjType_ID] = {
-        [IDCmd_Identify] = handle_idcap_identify,
-    },
-
-};
-
+void set_reg0(u64 r) {
+    int cpu_id = cpu_current_id();
+    trap_frames[cpu_id]->regs[0] = r;
+}
 
 void handle_el0_syscall() {
     // printf("------ syscall interrupt received\n");
-
-    u64 a0 = trap_frames[cpu_current_id()]->regs[0];
-    u64 a1 = trap_frames[cpu_current_id()]->regs[1];
-    // u64 a2 = trap_frames[cpu_current_id()]->regs[2];
-    // u64 a3 = trap_frames[cpu_current_id()]->regs[3];
-    // u64 a4 = trap_frames[cpu_current_id()]->regs[4];
-    // u64 a5 = trap_frames[cpu_current_id()]->regs[5];
-    // u64 a6 = trap_frames[cpu_current_id()]->regs[6];
-    // u64 a7 = trap_frames[cpu_current_id()]->regs[7];
+    u8 cpu_id = cpu_current_id();
+    u64 a0 = trap_frames[cpu_id]->regs[0];
+    u64 a1 = trap_frames[cpu_id]->regs[1];
+    u64 a2 = trap_frames[cpu_id]->regs[2];
+    u64 a3 = trap_frames[cpu_id]->regs[3];
+    u64 a4 = trap_frames[cpu_id]->regs[4];
+    u64 a5 = trap_frames[cpu_id]->regs[5];
+    u64 a6 = trap_frames[cpu_id]->regs[6];
+    u64 a7 = trap_frames[cpu_id]->regs[7];
     if (a0 == 0) {
-        sys_putchar(a0, (char) a1);
+        sys_putchar((char) a1);
     }
-
+    else if (a0 == 1) {
+        u64 r = sys_alloc(a1);
+        set_reg0(r);
+    }
+    else if (a0 == 2) {
+        u64 r = sys_retype(a1, a2, a3, a4, a5, a6, a7);
+        set_reg0(r);
+    }
+    else if (a0 == 3) {
+        u64 r = sys_set_dispatcher_properties(a1, a2);
+        set_reg0(r);
+    }
+    else if (a0 == 4) {
+        sys_set_pgfault_handler(a1, a2);
+    }
+    else if (a0 == 5) {
+        sys_map(a1, a2, a3, a4, a5);
+    }
+    else if (a0 == 6) {
+        sys_unmap(a1, a2);
+    }
+    else if (a0 == 7) {
+        sys_page_alloc(a1, a2, a3);
+    }
+    else if (a0 == 8) {
+        u64 r = sys_get_bi();
+        set_reg0(r);
+    }
+    else if (a0 == 9) {
+        u64 r = sys_get_init_disp();
+        set_reg0(r);
+    }
+    else if (a0 == 10) {
+        u64 r = sys_get_init_disp_cspace();
+        set_reg0(r);
+    }
+    else if (a0 == 11) {
+        sys_set_pcb_status(a1, a2);
+    }
+    else if (a0 == 12) {
+        handle_call(a1, a2);
+    }
+    else if (a0 == 13) {
+        handle_send(a1, a2);
+    }
+    else if (a0 == 14) {
+        handle_recv(a1, a2);
+    }
+    else if (a0 == 15) {
+        u64 r = get_mr(a1);
+        set_reg0(r);
+    }
+    else if (a0 == 16) {
+        set_mr(a1, a2);
+    }
+    else if (a0 == 17) {
+        sys_copy(a1, a2, a3, a4);
+    }
 }
 

@@ -16,7 +16,7 @@ void sched_yield()
     }
     while (1) {
         p = LIST_FIRST(&pcb_sched_list);
-        assert(p->status == ENV_RUNNABLE || p->status == ENV_RUNNING);
+        assert(p->status == ENV_RUNNABLE || p->status == ENV_RUNNING || p->status == ENV_BLOCK_ON_RECV || p->status == ENV_BLOCK_ON_SEND);
         if (first_p == NULL) {
             first_p = p;
         }

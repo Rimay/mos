@@ -58,6 +58,9 @@ typedef unsigned long u_long;
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
 
+#define UNUSED __attribute__((__unused__))
+
+
 
 static inline void set_ttbr0(u64 pa) {asm volatile ("msr ttbr0_el1, %0" :: "r" (pa));}
 

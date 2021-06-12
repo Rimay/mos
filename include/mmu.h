@@ -1,7 +1,7 @@
 #ifndef _MMU_H_
 #define _MMU_H_
 
-#ifndef USER_LIB
+// #ifndef USER_LIB
 
 
 #include "error.h"
@@ -61,17 +61,15 @@
 #define PADDR(kva) ((unsigned long)(kva) & 0xFFFFFFFFUL)
 
 
-
 #define PHYSICAL_MEMORY_START  0x40000000u
 #define PHYSICAL_MEMORY_END    0x60000000u
 #define PHYSICAL_MEMORY_LENGTH (PHYSICAL_MEMORY_END - PHYSICAL_MEMORY_START)
 
 
-#define U_PAGES_BASE        0x90000000
-#define U_ENVS_BASE         0x80000000
 #define U_LIMIT             0x80000000
 #define U_XSTACK_TOP        0x80000000
 #define U_STACK_TOP         0x01000000
+#define PAGE_FAULT_TEMP (U_XSTACK_TOP - 2 * BY2PG)
 
 #define UVPD                0x7040200000UL
 #define UVPM                0x7040000000UL
@@ -210,6 +208,8 @@ static inline u64 alloc_phys(u64 size)
     // how many page need to alloc for 'size'
     u64 page_num = (size + BASE_PAGE_SIZE - 1) / BASE_PAGE_SIZE;
     u64 addr = phy_alloc_addr;
+    assert(phy_alloc_addr + page_num * BASE_PAGE_SIZE <= PHYS_MEMORY_END);
+    
     // printf("addr: %x   page_num: %ld\n", addr, page_num);
 
     phy_alloc_addr += page_num * BASE_PAGE_SIZE;
@@ -224,5 +224,5 @@ static inline u64 alloc_phys_aligned(u64 size, u64 align)
     return alloc_phys(size);
 }
 
-#endif // USER_LIB
+// #endif // USER_LIB
 #endif //OSLABPI_MMU_H
