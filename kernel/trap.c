@@ -54,31 +54,31 @@ void handle_el0_pgfault() {
         }
    }
    else {
-       if ((*pte & PTE_COW) == 0) {
-           printf("\n[cpu %d Page fault]\n", cpu_id);
-           printf("esr : [%08x]\n", get_esr());
-           printf("va  : [%l016x]\n", get_far());
-           printf("elr  : [%l016x]\n", get_elr());
-           while (1) {
-               asm volatile ("wfi");
-           }
-       }
+        if ((*pte & PTE_COW) == 0) {
+            printf("\n[cpu %d Page fault]\n", cpu_id);
+            printf("esr : [%08x]\n", get_esr());
+            printf("va  : [%l016x]\n", get_far());
+            printf("elr  : [%l016x]\n", get_elr());
+            while (1) {
+                asm volatile ("wfi");
+            }
+        }
 
-       /*
+        /*
         * alloc a trapframe in user space to store current tf
         * elr -> __asm_pgfault_handler
         * sp  -> U_XSTACK_TOP - sizeof(struct Trapframe) (to restore current tf in entry.S(user code))
         */
-       struct Trapframe *tf = trap_frames[cpu_id];
-       memcpy((void *) (U_XSTACK_TOP - sizeof(struct Trapframe)), tf, sizeof(struct Trapframe));
+        struct Trapframe *tf = trap_frames[cpu_id];
+        memcpy((void *) (U_XSTACK_TOP - sizeof(struct Trapframe)), tf, sizeof(struct Trapframe));
 
-       tf->elr = curpcb[cpu_id]->pgfault_handler;
-       tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);       
-       tf->regs[0] = kva2pa((u64)&bi->init_pcb_cte);
-       tf->regs[1] = kva2pa(forked_cte);
-       tf->regs[2] = bad_va;
-       
-    //    printf("new_elr: 0x%lx\n", tf->elr);
+        tf->elr = curpcb[cpu_id]->pgfault_handler;
+        tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);       
+
+        // todo: not use global varible to store arg 1
+        tf->regs[0] = kva2pa((u64)&bi->init_pcb_cte);
+        tf->regs[1] = kva2pa(forked_cte);
+        tf->regs[2] = bad_va;
    }
 }
 
@@ -195,14 +195,17 @@ void handle_el0_syscall() {
         handle_recv(a1, a2);
     }
     else if (a0 == 15) {
-        u64 r = get_mr(a1);
+        u64 r = get_mr(a1, a2);
         set_reg0(r);
     }
     else if (a0 == 16) {
-        set_mr(a1, a2);
+        set_mr(a1, a2, a3);
     }
     else if (a0 == 17) {
         sys_copy(a1, a2, a3, a4);
+    }
+    else if (a0 == 18) {
+        reset_ipc_buffer();
     }
 }
 

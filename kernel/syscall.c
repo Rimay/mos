@@ -252,10 +252,10 @@ void handle_call(u64 ep_pa, u64 badge)
 
 }
 
-
 void handle_send(u64 ep_pa, u64 badge)
 {
     struct cte *ep = (struct cte *)pa2kva(ep_pa);
+    // dprintf("recv ep state: %d\n", ep->cap.u.endpoint.state);
     assert(ep->cap.type == ObjType_Endpoint);
     switch (ep->cap.u.endpoint.state)
     {
@@ -275,6 +275,7 @@ void handle_send(u64 ep_pa, u64 badge)
         struct Pcb *sender = curpcb[cpu_current_id()];
         receiver->status = ENV_RUNNABLE;
         ipc_copy(&sender->buffer, &receiver->buffer);
+        dprintf("ipc copy in sender\n");
         break;
     }
     default:
@@ -286,6 +287,8 @@ void handle_recv(u64 ep_pa, u64 badge)
 {
     struct cte *ep = (struct cte *)pa2kva(ep_pa);
     assert(ep->cap.type == ObjType_Endpoint);
+    // dprintf("send ep state: %d\n", ep->cap.u.endpoint.state);
+
     switch (ep->cap.u.endpoint.state)
     {
     case EP_State_Idle:
@@ -303,6 +306,7 @@ void handle_recv(u64 ep_pa, u64 badge)
         struct Pcb *receiver = curpcb[cpu_current_id()];
         sender->status = ENV_RUNNABLE;
         ipc_copy(&sender->buffer, &receiver->buffer);
+        dprintf("ipc copy in receiver\n");
         break;
     }
     default:
@@ -310,18 +314,30 @@ void handle_recv(u64 ep_pa, u64 badge)
     }
 }
 
-u64 get_mr(u64 i)
+u64 get_mr(u64 i, u64 is_cap)
 {
     assert(i < MSG_MAX_LEN);
     struct Pcb *p = curpcb[cpu_current_id()];
-    return p->buffer.msg[i];
+    u64 ret;
+    if (is_cap) {
+        ret = p->buffer.caps[i];
+    }
+    else {
+        ret = p->buffer.msg[i];
+    }
+    return ret;
 }
 
-void set_mr(u64 i, u64 value)
+void set_mr(u64 i, u64 value, u64 is_cap)
 {
     assert(i < MSG_MAX_LEN);
     struct Pcb *p = curpcb[cpu_current_id()];
-    p->buffer.msg[i] = value;
+    if (is_cap) {
+        p->buffer.caps[i] = value;
+    }
+    else {
+        p->buffer.msg[i] = value;
+    }
 }
 
 void sys_copy(u64 disp, u64 dest, u64 src, u64 len)
@@ -341,4 +357,11 @@ void sys_copy(u64 disp, u64 dest, u64 src, u64 len)
     dprintf("srv_va: 0x%lx  *src_pte:0x%lx  src_pa: 0x%lx  |||  dest_va: 0x%lx  *dest_pte:0x%lx  dest_pa: 0x%lx\n", \
          src, *src_pte, src_pa, dest, *dest_pte, dest_pa);
     memcpy((void *)pa2kva(dest_pa), (void *)pa2kva(src_pa), len);
+}
+
+void reset_ipc_buffer()
+{
+    u8 cpu_id = cpu_current_id();
+    struct Pcb *p = curpcb[cpu_id];
+    memzero(&p->buffer, sizeof(p->buffer));
 }

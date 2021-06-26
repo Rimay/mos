@@ -16,12 +16,12 @@ void pgfault(u64 disp0, u64 disp1, u64 va)
     // u_memcpy((void *)PAGE_FAULT_TEMP, (void *)va, BY2PG);
     syscall_copy(disp0, (u64)PAGE_FAULT_TEMP, va, BY2PG);
 
-    // map tmp to va and unmap tmp
+    // disable orignal page's COW flag
     syscall_map(disp0, va, disp1, va, PTE_USER | PTE_RW);
+    
+    // map tmp to va and unmap tmp
     syscall_map(disp0, PAGE_FAULT_TEMP, disp0, va, PTE_USER | PTE_RW);
     syscall_unmap(disp0, PAGE_FAULT_TEMP);
-
-    // while(1);
 }
 
 

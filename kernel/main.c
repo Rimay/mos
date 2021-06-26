@@ -8,8 +8,8 @@
 #include "page.h"
 #include "dprintf.h"
 
-extern void _binary_client_elf_start();
-extern void _binary_client_elf_end();
+extern void _binary_ps_elf_start();
+extern void _binary_ps_elf_end();
 
 extern char bss_start[];
 extern char bss_end[];
@@ -43,7 +43,7 @@ void main(u64 freemem)
         gicd_init();
         dprintf("gicd_init ok!\n");
 
-        pcb_create_init(_binary_client_elf_start, _binary_client_elf_end - _binary_client_elf_start, 0);
+        pcb_create_init(_binary_ps_elf_start, _binary_ps_elf_end - _binary_ps_elf_start, 0);
         dprintf("init pcb 'hello' create ok!\n");
         dprintf("freemem 0x%lx\n", phy_alloc_addr);
         

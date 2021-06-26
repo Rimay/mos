@@ -15,9 +15,14 @@
 #include "printf.h"
 #include "print.h"
 
-#include "ps_state.h"
+#include "ps.h"
 #include "allocator.h"
 #include "dprintf.h"
+#include "proc_client.h"
+#include "proc_server.h"
+
+
+
 extern u64 *vpt, *vpm, *vpd;
 
 #define user_panic(...) _user_panic(__FILE__, __LINE__, __VA_ARGS__)
@@ -55,10 +60,13 @@ void syscall_set_pcb_status(u64 disp, u64 status);
 void mos_call(u64 ep_pa, u64 badge);
 void mos_send(u64 ep_pa, u64 badge);
 void mos_recv(u64 ep_pa, u64 badge);
-u64 mos_get_mr(u64 i);
-void mos_set_mr(u64 i, u64 value);
+u64 mos_get_mr(u64 i, u64 is_cap);
+void mos_set_mr(u64 i, u64 value, u64 is_cap);
+
 
 void syscall_copy(u64 disp, u64 dest, u64 src, u64 len);
+
+void syscall_reset_ipc_buffer();
 
 
 void u_memcpy(void *dst, const void *src, u64 len);

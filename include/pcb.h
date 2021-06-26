@@ -18,6 +18,7 @@
 
 
 #define MSG_MAX_LEN 8
+#define MSG_MAX_EXTRA_CAPS 4
 
 struct ipc_buffer;
 enum endpoint_state {
@@ -32,14 +33,14 @@ struct ipc_info {
 };
 
 struct ipc_buffer {
-    // struct ipc_info tag;
     u64 msg[MSG_MAX_LEN];
-    // u64 caps[MSG_MAX_EXTRA_CAPS];
+    u64 caps[MSG_MAX_EXTRA_CAPS];
+};
+
+    // struct ipc_info tag;
     // u64 recv_cnode;
     // u64 recv_l1_offset;
     // u64 recv_l2_offset;
-};
-
 
 struct Pcb {
 	// basic attributes

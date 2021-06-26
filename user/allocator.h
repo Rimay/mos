@@ -20,6 +20,17 @@ struct cspace_path {
     u64 l2index;
 };
 
+struct procserv_state {
+    struct vka alloctor;
+    struct vka_object endpoint;
+    
+    struct vka_object *child_endpoint;
+    
+    // struct cspace_path ipc_recv;
+    // struct pid_list plist;
+    u64 faketime;
+};
+
 
 /*------------------------------------- allocator function -------------------------------------*/
 void vka_init(struct vka *v);

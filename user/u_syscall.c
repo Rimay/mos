@@ -74,7 +74,6 @@ void syscall_set_pcb_status(u64 disp, u64 status)
 
 
 /*------------------------------------------------- msg syscall ------------------------------------------------*/
-
 void mos_call(u64 ep_pa, u64 badge)
 {
     msyscall(12, ep_pa, badge, 0, 0, 0, 0, 0);
@@ -90,18 +89,23 @@ void mos_recv(u64 ep_pa, u64 badge)
     msyscall(14, ep_pa, badge, 0, 0, 0, 0, 0);
 }
 
-u64 mos_get_mr(u64 i)
+u64 mos_get_mr(u64 i, u64 is_cap)
 {
-    return msyscall(15, i, 0, 0, 0, 0, 0, 0);
+    return msyscall(15, i, is_cap, 0, 0, 0, 0, 0);
 }
 
-void mos_set_mr(u64 i, u64 value)
+void mos_set_mr(u64 i, u64 value, u64 is_cap)
 {
-    msyscall(16, i, value, 0, 0, 0, 0, 0);
+    msyscall(16, i, value, is_cap, 0, 0, 0, 0);
 }
 
 
 void syscall_copy(u64 disp, u64 dest, u64 src, u64 len)
 {
     msyscall(17, disp, dest, src, len, 0, 0, 0);
+}
+
+void syscall_reset_ipc_buffer()
+{
+    msyscall(18, 0, 0, 0, 0, 0, 0, 0);
 }

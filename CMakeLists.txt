@@ -8,8 +8,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -ffreestanding -mgeneral-regs-only")
 
 include_directories(include)
 
+
 set(USER_PROGRAM
-        ${CMAKE_CURRENT_SOURCE_DIR}/user/client.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/user/ps.bin
 )
 
 add_executable(mos_qemu.elf

@@ -34,8 +34,11 @@ void handle_call(u64 ep_pa, u64 badge);
 void handle_send(u64 ep_pa, u64 badge);
 void handle_recv(u64 ep_pa, u64 badge);
 
-u64 get_mr(u64 i);
-void set_mr(u64 i, u64 value);
+u64 get_mr(u64 i, u64 is_cap);
+void set_mr(u64 i, u64 value, u64 is_cap);
+
+void reset_ipc_buffer();
+
 
 void sys_copy(u64 disp, u64 dest, u64 src, u64 len);
 
