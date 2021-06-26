@@ -1,24 +1,27 @@
 #!/bin/bash
 
-bash clean
+sudo rm -rf build usr/*.bin
 
-echo "------------- Compiling -------------"
-mkdir build
-cd build
+echo "-------------------------- Compiling --------------------------"
+mkdir build && cd build
 cmake ..
 make 
 
-echo "------------- Generating Image -------------"
-cd ..
-./objcopy
+echo "-------------------------- Generating Image --------------------------"
+aarch64-elf-objcopy mos_qemu.elf -O binary mos_qemu.img
+aarch64-elf-objdump -d mos_qemu.elf > mos_qemu.asm
+aarch64-elf-readelf -a mos_qemu.elf > mos_qemu.sec
+aarch64-elf-nm -n mos_qemu.elf > mos_qemu.nm
+
+
 
 qemu-system-aarch64 -M virt,gic-version=2 \
                     -cpu cortex-a57 \
                     -m 4096 \
                     -serial stdio \
-                    -kernel build/mos_qemu.img \
+                    -kernel mos_qemu.img \
                     -display none \
                     -smp 1
 
 
-echo "------------- Finish -------------"
+echo "-------------------------- Finish --------------------------"

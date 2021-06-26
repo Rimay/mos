@@ -1,5 +1,0 @@
-cd build
-aarch64-elf-objcopy mos_qemu.elf -O binary mos_qemu.img
-aarch64-elf-objdump -d mos_qemu.elf > mos_qemu.asm
-aarch64-elf-readelf -a mos_qemu.elf > mos_qemu.sec
-aarch64-elf-nm -n mos_qemu.elf > mos_qemu.nm
