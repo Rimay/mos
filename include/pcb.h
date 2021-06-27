@@ -1,6 +1,7 @@
 #ifndef _ENV_H_
 #define _ENV_H_
 
+#include <utils.h>
 #include "mmu.h"
 #include "queue.h"
 #include "trap.h"
@@ -37,10 +38,6 @@ struct ipc_buffer {
     u64 caps[MSG_MAX_EXTRA_CAPS];
 };
 
-    // struct ipc_info tag;
-    // u64 recv_cnode;
-    // u64 recv_l1_offset;
-    // u64 recv_l2_offset;
 
 struct Pcb {
 	// basic attributes
@@ -48,15 +45,23 @@ struct Pcb {
 
 	// cspace
 	struct cte *cspace;
+	struct cte *self_disp;	// kva
+
+	struct cte *pagecn;
+	struct cte *vnodecn;
+	struct cte *pcbcn;
+	struct cte *stackcn;
+	struct cte *epcn;
 
 	// vspace
-	u64 pg_dir;             
+	u64 pgdir_kva;
+	u64 stack_kva;
+	u64 uxstack_kva;
 	
 	// trap frame
 	struct Trapframe pcb_tf;        // Saved registers
 
 	// ipc
-	u32 ipc_on;
 	struct ipc_buffer buffer;
 
 	// fault handling
@@ -70,23 +75,21 @@ struct Pcb {
 
 #ifndef USER_LIB
 
-#include <utils.h>
 
 LIST_HEAD(Pcb_list, Pcb);
 extern struct Pcb *curpcb[NCPU];	        				// current pcb in each core
 extern struct Pcb_list pcb_sched_list; 						// runnable pcb list
 
-u64 pcb_init(struct Pcb *p, u64 ppid, struct cte **u_stack_cte);
 
+void init_cspace(struct Pcb *p, u64 is_root);
+u64 pcb_init(struct Pcb *p, u64 ppid);
+void create_root_pcb(void *binary, u32 size, int priority, int app_id);
 void pcb_run(struct Pcb *e);
-void set_init_pcb_caps();
-void pcb_create_init(void *binary, u32 size, int priority);
+
 
 void ep_append(struct Endpoint *ep, struct Pcb *p, int state);
 struct Pcb* ep_pop(struct Endpoint *ep);
 void ipc_copy(struct ipc_buffer *src, struct ipc_buffer *dest);
-
-// int pcb_alloc(struct Pcb **e, u_int ppid);
 
 
 #endif // USER_LIB

@@ -11,6 +11,8 @@ include_directories(include)
 
 set(USER_PROGRAM
         ${CMAKE_CURRENT_SOURCE_DIR}/user/ps.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/user/app1.bin
+        ${CMAKE_CURRENT_SOURCE_DIR}/user/app2.bin
 )
 
 add_executable(mos_qemu.elf

@@ -4,13 +4,30 @@
 struct procserv_state ps_state;
 
 const char* dprintf_server_name = "PROCSERV";
-int dprintf_server_colour = 32;
+int dprintf_server_colour = 34;
 struct vka_object ep2;
 
 
 u64 faketime() 
 {
     return ps_state.faketime++;
+}
+
+
+void ps_init(struct procserv_state *s)
+{
+    u_memzero(s, sizeof(struct procserv_state));
+
+    dwritef("Init vka...\n");
+    vka_init(&s->alloctor);
+
+    dwritef("Allocating endpoint...\n");
+    int r = vka_alloc_endpoint(&s->alloctor, &s->endpoint);
+    user_assert(r == 0);
+
+    // TODO: should not init client ep in ps
+    r = vka_alloc_endpoint(&s->alloctor, &ep2);
+    user_assert(r == 0);
 }
 
 
@@ -39,22 +56,6 @@ void handle_msg()
 }
 
 
-void ps_init(struct procserv_state *s)
-{
-    u_memzero(s, sizeof(struct procserv_state));
-
-    dwritef("Init vka...\n");
-    vka_init(&s->alloctor);
-
-    dwritef("Allocating endpoint...\n");
-    vka_alloc_endpoint(&s->alloctor, ObjType_Endpoint, &s->endpoint);
-    vka_alloc_endpoint(&s->alloctor, ObjType_Endpoint, &ep2);
-
-    // dwritef("Allocating ipc recv slot...\n");
-    // dwritef("Initialising miscellaneous states....\n");
-}
-
-
 void run_child()
 {
     dwritef("---------------------------------------\n");
@@ -66,22 +67,24 @@ void run_child()
     // cl_ping(&ps_state.endpoint);
 
     while(1){
-        // dwritef("h");
     }
 }
 
 
 void umain(void)
 {
+    dwritef("==========================================\n");
+    dwritef("Enter process server umain\n");
+    dwritef("==========================================\n");
+    
+    dwritef("Init process server\n");
     ps_init(&ps_state);
-    dwritef("process server initialised.\n");
-    dwritef("==========================================\n\n");
 
-    dwritef("Init self-loader\n");
-    int pid = fork(&ps_state.alloctor);
-    if (pid == 0) {
-        run_child();
-    }
+    // dwritef("Init self-loader\n");
+    // int pid = fork(&ps_state.alloctor);
+    // if (pid == 0) {
+    //     run_child();
+    // }
 
     while (1) {
         mos_recv(ep2.cte_pa, 0);

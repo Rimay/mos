@@ -25,3 +25,4 @@ void memcpy(void *dst, const void *src, u64 len) {
         src += 1;
     }
 }
+

@@ -22,6 +22,7 @@ void pgfault(u64 disp0, u64 disp1, u64 va)
     // map tmp to va and unmap tmp
     syscall_map(disp0, PAGE_FAULT_TEMP, disp0, va, PTE_USER | PTE_RW);
     syscall_unmap(disp0, PAGE_FAULT_TEMP);
+    dwritef("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 
 
@@ -62,7 +63,7 @@ int fork(struct vka *v)
     dwritef("Setting process 0's pgfault handler success!\n");
 
     struct vka_object child_process;
-    u64 r = vka_alloc_pcb(v, ObjType_Dispatcher, &child_process);
+    u64 r = vka_alloc_pcb(v, &child_process);
     user_assert(r == 0);
 
     // init child pcb's attributes

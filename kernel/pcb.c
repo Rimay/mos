@@ -11,13 +11,8 @@ struct Pcb *init_pcb;
 struct Pcb *curpcb[NCPU];
 struct Pcb_list pcb_sched_list;
 
-struct cte *init_cspace, *pagecn, *pgdir_cte, *u_stack_cte;
-u64 p_pcnslot_cnt;
-u64 c_pcnslot_cnt;
-
 extern struct bootinfo *bi;
 extern u64 phy_alloc_addr;
-
 
 
 u32 gen_pid()
@@ -26,9 +21,110 @@ u32 gen_pid()
 }
 
 
-// init a newly forked process
-inline u64 pcb_init(struct Pcb *p, u64 ppid, struct cte **u_stack_cte)
+/*
+    ccf dispatcher
+    ccf cspace
+        ccf pagecn
+        ccf vnodecn
+            ccf vnode_0
+        ccf stackcn
+            ccf stack
+            ccf uxstack
+*/
+void init_cspace(struct Pcb *p, u64 is_root)
 {
+    if (is_root) {
+        if (bi->init_pcbcn_is_created == 0) {
+            create_cap(ObjType_L2cnode,  &(bi->init_pcbcn_cte), 0);
+            bi->init_pcbcn_is_created = 1;
+        }
+
+        struct cte* pcb_cte = create_cap(ObjType_Dispatcher, &(bi->init_pcbcn_cte), 0);
+
+        u64 pcb_pa = (u64)pcb_cte->cap.u.dispatcher.e;
+        p = (struct Pcb *)pa2kva(pcb_pa);
+        p->self_disp = pcb_cte;        
+        init_pcb = p;
+        
+        dprintf("ccf pcb at 0x%x\n", pcb_pa);
+    }
+    
+    // ---------------------   ccf pcb's cspace (16 slot \ size = 1k)   ---------------------
+    p->cspace = create_cap(ObjType_L1cnode, p->cspace, 1);
+    u64 cspace_base = p->cspace->cap.u.l1cnode.base;
+    dprintf("ccf cspace at 0x%x\n", cspace_base);
+
+    // ---------------------   ccf pagecn (1024 slot / size = 64k)   ---------------------
+    struct cte *cn = caps_locate_slot(cspace_base, SLOT_PAGE); 
+    cn = create_cap(ObjType_L2cnode, cn, 0);
+    p->pagecn = cn;
+    dprintf("ccf pagecn at 0x%x\n", cn->cap.u.l2cnode.base);
+ 
+    // ---------------------   ccf vnodecn (1024 slot \ size = 64k)   ---------------------
+    cn = caps_locate_slot(cspace_base, SLOT_VNODE);
+    cn = create_cap(ObjType_L2cnode, cn, 0);
+    p->vnodecn = cn;
+    dprintf("ccf vnodecn at 0x%x\n", cn->cap.u.l2cnode.base);
+
+    // ccf vnode
+    cn = create_cap(ObjType_VNode, cn, 0);
+    u64 pgdir_pa = cn->cap.u.vnode.base;
+    p->pgdir_kva = pa2kva(pgdir_pa);
+    dprintf("ccf vnode_0 at 0x%x\n", pgdir_pa);
+
+    // ---------------------   ccf pcbcn (1024 slot \ size = 64k)   ---------------------
+    cn = caps_locate_slot(cspace_base, SLOT_PCB);
+    cn = create_cap(ObjType_L2cnode, cn, 0);
+    p->pcbcn = cn;
+    dprintf("ccf pcbcn at 0x%x\n", cn->cap.u.l2cnode.base);
+    
+    // ---------------------   ccf stackcn (1024 slot \ size = 64k)   ---------------------
+    cn = caps_locate_slot(cspace_base, SLOT_STACK);
+    cn = create_cap(ObjType_L2cnode, cn, 0);
+    p->stackcn = cn;
+    dprintf("ccf stackcn at 0x%x\n", cn->cap.u.l2cnode.base);
+
+    // ccf stack
+    cn = create_cap(ObjType_Page, cn, 0);
+    u64 stack_pa = cn->cap.u.page.base;
+    p->stack_kva = pa2kva(stack_pa);
+    dprintf("ccf stack at 0x%x\n", stack_pa);
+
+    // ccf uxstack
+    cn = create_cap(ObjType_Page, cn, 0);
+    u64 uxstack_pa = cn->cap.u.page.base;
+    p->uxstack_kva = pa2kva(uxstack_pa);
+    dprintf("ccf uxstack at 0x%x\n", uxstack_pa);
+
+    // ---------------------   ccf epcn (1024 slot \ size = 64k)   ---------------------
+    cn = caps_locate_slot(cspace_base, SLOT_ENDPOINT);
+    cn = create_cap(ObjType_L2cnode, cn, 0);
+    p->epcn = cn;
+    dprintf("ccf epcn at 0x%x\n", cn->cap.u.l2cnode.base);
+}
+
+
+// init an empty pcb
+u64 pcb_init(struct Pcb *p, u64 ppid)
+{
+    init_cspace(p, 0);
+
+    // map pgdir 
+    map_ptable((u64 *)p->pgdir_kva, UVPD, kva2pa(p->pgdir_kva), 
+                PTE_USER | PTE_RO, p);
+    dprintf("map pg_dir success!\n");
+
+    // map stack 
+    map_ptable((u64 *)p->pgdir_kva, U_STACK_TOP - BASE_PAGE_SIZE, kva2pa(p->stack_kva), 
+                PTE_USER | PTE_RW, p);
+    dprintf("map stack success!\n");
+
+    // map uxstack 
+    map_ptable((u64 *)p->pgdir_kva, U_XSTACK_TOP - BASE_PAGE_SIZE, kva2pa(p->uxstack_kva), 
+                PTE_USER | PTE_RW, p);
+    dprintf("map uxstack success!\n");
+
+
     u8 cpu_id = cpu_current_id();
     assert(ppid == curpcb[cpu_id]->pid);
 
@@ -38,43 +134,59 @@ inline u64 pcb_init(struct Pcb *p, u64 ppid, struct cte **u_stack_cte)
     p->pri = curpcb[cpu_id]->pri;
     p->cpu_id = cpu_id;
 
-    // disable ipc
-    p->ipc_on = 0;
-
-    // create cspace(l1cnode) and page_cnode(l2cnode)
-    // child process don't share cspace 
-    u64 addr = alloc_phys_aligned(objsize(ObjType_L1cnode), BASE_PAGE_SIZE);
-    p->cspace = (struct cte *)pa2kva(addr);
-    caps_create_new(ObjType_L1cnode, addr, objsize(ObjType_L1cnode), objsize(ObjType_L1cnode), 1, 0, p->cspace);
-    dprintf("ccf cspace at 0x%x\n", addr);
-
-    struct cte *c_pagecn = caps_locate_slot(p->cspace->cap.u.l1cnode.base, SLOT_PAGECN); 
-    caps_create_new(ObjType_L2cnode, alloc_phys_aligned(objsize(ObjType_L2cnode), BASE_PAGE_SIZE),  objsize(ObjType_L2cnode), \
-                    objsize(ObjType_L2cnode), 1, 0, c_pagecn);
-    dprintf("ccf pagecn at 0x%x\n", c_pagecn->cap.u.l2cnode.base);
-
-
-    // alloc page for child pgdir 
-    struct cte *c_pgdir = caps_locate_slot(c_pagecn->cap.u.l2cnode.base, c_pcnslot_cnt++);
-    caps_create_new(ObjType_VNode_l0, alloc_phys_aligned(objsize(ObjType_VNode_l0), BASE_PAGE_SIZE), 
-                    0, objsize(ObjType_VNode_l0), 1, 0, c_pgdir);
-    dprintf("ccf pgdir at 0x%x\n", c_pgdir->cap.u.vnode_l0.base);
-
-    p->pg_dir = pa2kva(c_pgdir->cap.u.vnode_l0.base);
-    map_ptable((u64 *)p->pg_dir, UVPD, kva2pa(p->pg_dir), PTE_USER | PTE_RO, c_pagecn, &c_pcnslot_cnt);
-    dprintf("map child's pg_dir success!\n");
-
-
-    // alloc page for child ustack 
-    struct cte *c_ustack_cte = caps_locate_slot(c_pagecn->cap.u.l2cnode.base, c_pcnslot_cnt++);
-    caps_create_new(ObjType_Page, alloc_phys_aligned(objsize(ObjType_Page), BASE_PAGE_SIZE), 
-                    0, objsize(ObjType_Page), 1, 0, c_ustack_cte);
-    map_ptable((u64 *)p->pg_dir, U_STACK_TOP - BASE_PAGE_SIZE,
-                 c_ustack_cte->cap.u.page.base, PTE_USER | PTE_RW, c_pagecn, &c_pcnslot_cnt);
-    dprintf("map child's u_stack success!\n");
-    *u_stack_cte = c_ustack_cte;
-
     return p->pid;
+}
+
+
+// TODO:
+//      const char *app_name
+void create_root_pcb(void *binary, u32 size, int priority, int app_id)
+{
+    // alloc pages for pg_dir and u_stack
+    init_cspace(init_pcb, 1);
+    dprintf("set cap success!\n");
+
+    if (app_id == 0) {
+        bi->ps_cte = init_pcb->self_disp;
+    }
+    else if (app_id == 1) {
+        bi->app1_cte = init_pcb->self_disp;
+    }
+    else if (app_id == 2) {
+        bi->app2_cte = init_pcb->self_disp;
+    }
+
+    // map pg_dir
+    map_ptable((u64 *)init_pcb->pgdir_kva, UVPD, kva2pa(init_pcb->pgdir_kva), 
+                PTE_USER | PTE_RO, init_pcb);
+    dprintf("map pg_dir success!\n");
+
+    // map stack
+    map_ptable((u64 *)init_pcb->pgdir_kva, U_STACK_TOP - BASE_PAGE_SIZE, kva2pa(init_pcb->stack_kva), 
+                PTE_USER | PTE_RW, init_pcb);
+    dprintf("map stack success!\n");
+
+    // map uxstack 
+    map_ptable((u64 *)init_pcb->pgdir_kva, U_XSTACK_TOP - BASE_PAGE_SIZE, kva2pa(init_pcb->uxstack_kva), 
+                PTE_USER | PTE_RW, init_pcb);
+    dprintf("map uxstack success!\n");
+
+    // setting up miscellaneous 
+    init_pcb->pcb_tf.spsr = 0;
+    init_pcb->pcb_tf.sp = U_STACK_TOP;
+
+    init_pcb->pid = gen_pid();
+    init_pcb->ppid = 0;
+    init_pcb->status = ENV_RUNNABLE;
+    init_pcb->pri = priority;
+    init_pcb->cpu_id = 0;    
+    dprintf("set miscellaneous success!\n");
+
+    // load elf img
+    load_elf_img(init_pcb, binary, size);
+    dprintf("load elf_img success!\n");
+
+    LIST_INSERT_TAIL(&pcb_sched_list, init_pcb, sched_link);
 }
 
 
@@ -96,105 +208,11 @@ void pcb_run(struct Pcb *p) {
     //dprintf("ret addr [%l016x]\n",curpcb[cpu_id]->pcb_tf.elr);
 
     // setup pgdir register
-    set_ttbr0(curpcb[cpu_id]->pg_dir & 0xFFFFFFFF);    
+    set_ttbr0(curpcb[cpu_id]->pgdir_kva & 0xFFFFFFFF);    
     
     // cleanup the tlb
     tlb_invalidate();
 }
-
-
-void set_init_pcb_caps()
-{
-    /*
-     * alloc a-pcb-size for init_pcb & ccf for init_pcb 
-     */
-    u64 addr = alloc_phys_aligned(objsize(ObjType_Dispatcher), BASE_PAGE_SIZE);
-    init_pcb = (struct Pcb *)pa2kva(addr);
-    caps_create_new(ObjType_Dispatcher, addr, 0, objsize(ObjType_Dispatcher), 1, 0, &(bi->init_pcb_cte));
-    bi->init_pcb_cte.cap.u.dispatcher.e = (struct Pcb *)addr;
-    dprintf("ccf pcb at 0x%x\n", addr);
-
-    /*
-     * ccf init_pcb's cspace(l1cnode) it has 16 slot, each slot is a l2cnode
-     * size = 1k
-     */
-    addr = alloc_phys_aligned(objsize(ObjType_L1cnode), BASE_PAGE_SIZE);
-    init_pcb->cspace = (struct cte *)pa2kva(addr);
-    init_cspace = init_pcb->cspace;
-
-    caps_create_new(ObjType_L1cnode, addr, 
-                    objsize(ObjType_L1cnode), objsize(ObjType_L1cnode), 1, 0, init_cspace);
-    dprintf("ccf cspace at 0x%x\n", addr);
-
-    /*
-     * ccf pagecn it has 1024 slot, each slot is a cte. size = 64k
-     * ccf pgdir, it's in pagecn's slot
-     */
-    pagecn = caps_locate_slot(init_cspace->cap.u.l1cnode.base, SLOT_PAGECN); 
-    caps_create_new(ObjType_L2cnode, alloc_phys_aligned(objsize(ObjType_L2cnode), BASE_PAGE_SIZE), 
-                    objsize(ObjType_L2cnode), objsize(ObjType_L2cnode), 1, 0, pagecn);
-    dprintf("ccf pagecn at 0x%x\n", pagecn->cap.u.l2cnode.base);
-    
-    pgdir_cte = caps_locate_slot(pagecn->cap.u.l2cnode.base, p_pcnslot_cnt++);
-    caps_create_new(ObjType_VNode_l0, alloc_phys_aligned(objsize(ObjType_VNode_l0), BASE_PAGE_SIZE), 
-                    0, objsize(ObjType_VNode_l0), 1, 0, pgdir_cte);
-    
-    // set init pcb's pg_dir
-    init_pcb->pg_dir = pa2kva(pgdir_cte->cap.u.vnode_l0.base);
-    dprintf("ccf pgdir at 0x%x\n", pgdir_cte->cap.u.vnode_l2.base);
-
-    /*
-     * ccf ustackcn it has 1024 slot, each slot is a cte. size = 64k
-     * ccf ustack, it's in ustackcn's slot
-     */
-    u_stack_cte = caps_locate_slot(pagecn->cap.u.l2cnode.base, p_pcnslot_cnt++);
-    caps_create_new(ObjType_Page, alloc_phys_aligned(objsize(ObjType_Page), BASE_PAGE_SIZE), 
-                    0, objsize(ObjType_Page), 1, 0, u_stack_cte);
-    dprintf("ccf u_stack at 0x%x\n", u_stack_cte->cap.u.page.base);
-    
-}
-
-
-void pcb_create_init(void *binary, u32 size, int priority)
-{
-    /*
-     *  1. alloc pages for pg_dir
-     *  2. alloc pages for u_stack
-     */
-    set_init_pcb_caps();
-    dprintf("setup success!\n");
-
-    /* 
-     *  1. map pg_dir to pg_dir
-     *  2. map u_stack to pg_dir
-     */
-    map_ptable((u64 *)init_pcb->pg_dir, UVPD, kva2pa(init_pcb->pg_dir), PTE_USER | PTE_RO, pagecn, &p_pcnslot_cnt);
-    dprintf("map pg_dir success!\n");
-
-    map_ptable((u64 *)init_pcb->pg_dir, U_STACK_TOP - BASE_PAGE_SIZE,
-                 u_stack_cte->cap.u.page.base, PTE_USER | PTE_RW, pagecn, &p_pcnslot_cnt);
-    dprintf("map u_stack success!\n");
-
-    init_pcb->pcb_tf.spsr = 0;
-    init_pcb->pcb_tf.sp = U_STACK_TOP;
-
-    init_pcb->pid = gen_pid();
-    init_pcb->ppid = 0;
-    init_pcb->status = ENV_RUNNABLE;
-    init_pcb->pri = priority;
-    init_pcb->cpu_id = 0;    
-
-    init_pcb->ipc_on = 0;
-
-    /*
-     * load elf img
-     */
-    load_elf_img(init_pcb, binary, size);
-    dprintf("load elf_img success!\n");
-
-    LIST_INSERT_TAIL(&pcb_sched_list, init_pcb, sched_link);
-}
-
 
 
 void ep_append(struct Endpoint *ep, struct Pcb *p, int state)
@@ -219,6 +237,7 @@ void ep_append(struct Endpoint *ep, struct Pcb *p, int state)
     ep->len++;
 }
 
+
 struct Pcb* ep_pop(struct Endpoint *ep)
 {
     assert(ep->len > 0);
@@ -235,6 +254,7 @@ struct Pcb* ep_pop(struct Endpoint *ep)
     ep->len--;
     return ret;
 }
+
 
 void ipc_copy(struct ipc_buffer *src, struct ipc_buffer *dest)
 {

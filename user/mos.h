@@ -41,8 +41,7 @@ void _user_panic(const char *file, int line, const char *fmt, ...);
 /*------------------------------------------------- old syscall ------------------------------------------------*/
 void syscall_putchar(char c);
 u64 syscall_alloc(u64 sz);
-u64 syscall_retype(u64 untype_addr, u64 untype_size, u64 dest_type, u64 dest_cspace, u64 l1index,\
-                    u64 l2index, u64 obj_num);
+u64 syscall_retype(u64 ut_addr, u64 ut_size, u64 dest_type, u64 disp);
 
 u64 syscall_set_dispatcher_properties(u64 disp, u64 ppid);
 void syscall_set_pgfault_handler(u64 disp, u64 func);
@@ -51,9 +50,7 @@ void syscall_map(u64 src_disp, u64 src_va, u64 dest_disp, u64 dest_va, u64 perm)
 void syscall_unmap(u64 disp, u64 va);
 
 void syscall_page_alloc(u64 disp, u64 va, u64 perm);
-u64 syscall_get_bi();
-u64 syscall_get_init_disp();
-u64 syscall_get_init_disp_cspace();
+u64 syscall_get_disp_info();
 void syscall_set_pcb_status(u64 disp, u64 status);
 
 /*------------------------------------------------- msg syscall ------------------------------------------------*/

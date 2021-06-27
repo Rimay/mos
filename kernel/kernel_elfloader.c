@@ -19,33 +19,25 @@ static inline int is_elf_format(u8 *binary) {
 
 
 static int load_icode_mapper(u64 va, u_int mem_size, u8 *bin, u_int file_size, void *pp) {
-    struct Pcb *pcb = (struct Pcb *) pp;
+    struct Pcb *p = (struct Pcb *) pp;
     u64 i;
     u64 offset = va - ROUND_DOWN(va, BASE_PAGE_SIZE);
     // printf("\t\tload_icode_mapper va: 0x%lx\tfile size: 0x%lx\tmem size: 0x%lx\n", va, file_size, mem_size);
 
     for (i = 0; i < file_size; i += BASE_PAGE_SIZE) {
-        u64 pa = alloc_page(pagecn, &p_pcnslot_cnt, ObjType_Page);
+        u64 pa = alloc_page(p);
+        map_ptable((u64 *)p->pgdir_kva, va-offset+i, pa, PTE_USER | PTE_RW, p);
         
-        map_ptable((u64 *)pcb->pg_dir, 
-                    va-offset+i, pa, PTE_USER | PTE_RW, pagecn, &p_pcnslot_cnt);
-        // printf("\t\telf map va: 0x%lx\tpa: 0x%lx\n", va-offset+i, pa);
-        // u64 *pte = walk_pgdir((u64 *)pcb->pg_dir, va - offset + i);
-        // printf("\t\tfind pa: 0x%lx\n", PTE_ADDR(*pte));
-
-        memcpy((void *) pa2kva(pa) + offset, bin+i, MIN(BY2PG, file_size - i));
-        // printf("\t\tstage 1: i %d  slot_cnt %d\n", i, p_pcnslot_cnt);
+        memcpy((void *) pa2kva(pa)+offset, bin+i, MIN(BY2PG, file_size - i));
     }
     while (i < mem_size) {
          // alloc new page
-        u64 pa = alloc_page(pagecn, &p_pcnslot_cnt, ObjType_Page);
+        u64 pa = alloc_page(p);
         
         // map new page to pcb's pgdir
-        map_ptable((u64 *)pcb->pg_dir,  va-offset+i, pa, \
-                    PTE_USER | PTE_RW, pagecn, &p_pcnslot_cnt);
+        map_ptable((u64 *)p->pgdir_kva, va-offset+i, pa, PTE_USER | PTE_RW, p);
         
         i += BASE_PAGE_SIZE;
-        // printf("\t\tstage 2: i %d  slot_cnt %d\n", i, p_pcnslot_cnt);
     }
     return 0;
 }

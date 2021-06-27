@@ -3,28 +3,31 @@
 
 void vka_init(struct vka *v)
 {
-    v->disp_cte = syscall_get_init_disp();
-    v->cspace_cte = syscall_get_init_disp_cspace();
+    v->disp_cte = syscall_get_disp_info();
 }
+
 
 int vka_alloc_object(struct vka *v, u64 type, struct vka_object *result)
 {
     u64 base = syscall_alloc(objsize(type));
-    u64 slot = objslot(type);
-    result->cte_pa = syscall_retype(base, objsize(type), type, v->cspace_cte, slot, v->cur_slot[slot], 1);
+    result->cte_pa = syscall_retype(base, objsize(type), type, v->disp_cte);
+    // dwritef("new cte pa: 0x%lx\n", result->cte_pa);
     return 0;
 }
 
 
-int vka_alloc_endpoint(struct vka *v, u64 type, struct vka_object *result)
+int vka_alloc_endpoint(struct vka *v, struct vka_object *result)
 {
-    return vka_alloc_object(v, type, result);
-}
-
-int vka_alloc_pcb(struct vka *v, u64 type, struct vka_object *result)
-{
-    return vka_alloc_object(v, type, result);
-    
+    return vka_alloc_object(v, ObjType_Endpoint, result);
 }
 
 
+int vka_alloc_pcb(struct vka *v, struct vka_object *result)
+{
+    return vka_alloc_object(v, ObjType_Dispatcher, result);
+}
+
+int vka_alloc_page(struct vka *v, struct vka_object *result)
+{
+    return vka_alloc_object(v, ObjType_Page, result);
+}

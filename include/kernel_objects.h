@@ -18,12 +18,13 @@ struct Phymem{
 struct L1cnode {
     u64 base;
     u64 bytes;
-    u8 rightsmask;
+    u64 cnt;
 };
 
 struct L2cnode {
     u64 base;
     u64 bytes;
+    u64 cnt;
 };
 
 struct Page {
@@ -35,18 +36,9 @@ struct Dispatcher {
     struct Pcb *e;
 };
 
-struct VNode_l0 {
+struct VNode {
     u64 base;
 };
-
-struct VNode_l1 {
-    u64 base;
-};
-
-struct VNode_l2 {
-    u64 base;
-};
-
 
 struct Endpoint {
     u64 head;   // Struct Pcb pointer addr 

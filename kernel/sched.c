@@ -2,8 +2,6 @@
 #include <printf.h>
 #include <cpu.h>
 
-extern struct Pcb *init_pcb;
-
 void sched_yield()
 {
     // printf("------ time interrupt received\n");
@@ -33,5 +31,4 @@ void sched_yield()
         LIST_REMOVE(p, sched_link);
         LIST_INSERT_TAIL(&pcb_sched_list, p, sched_link);
     }
-    pcb_run(init_pcb);
 }

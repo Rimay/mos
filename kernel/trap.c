@@ -39,11 +39,10 @@ u64 get_far() {
 void handle_el0_pgfault() {
     u8 cpu_id = cpu_current_id();
     u64 bad_va = get_far();
-    u64 *pte = walk_pgdir((u64 *)curpcb[cpu_id]->pg_dir, bad_va);
+    u64 *pte = walk_pgdir((u64 *)curpcb[cpu_id]->pgdir_kva, bad_va);
 
     dprintf("+++++++++++++ page fault occured +++++++++++++\n");
     dprintf("bad va: 0x%lx  *pte: 0x%lx\n", bad_va, *pte);
-    dprintf("++++++++++++++++++++++++++++++++++++++++++++++\n");
     if (curpcb[cpu_id]->pgfault_handler == 0) {
         printf("\n[cpu %d Page fault]\n", cpu_id);
         printf("esr : [%08x]\n", get_esr());
@@ -76,7 +75,7 @@ void handle_el0_pgfault() {
         tf->sp = U_XSTACK_TOP - sizeof(struct Trapframe);       
 
         // todo: not use global varible to store arg 1
-        tf->regs[0] = kva2pa((u64)&bi->init_pcb_cte);
+        tf->regs[0] = kva2pa((u64)bi->ps_cte);
         tf->regs[1] = kva2pa(forked_cte);
         tf->regs[2] = bad_va;
    }
@@ -141,8 +140,8 @@ void handle_el0_syscall() {
     u64 a3 = trap_frames[cpu_id]->regs[3];
     u64 a4 = trap_frames[cpu_id]->regs[4];
     u64 a5 = trap_frames[cpu_id]->regs[5];
-    u64 a6 = trap_frames[cpu_id]->regs[6];
-    u64 a7 = trap_frames[cpu_id]->regs[7];
+    // u64 a6 = trap_frames[cpu_id]->regs[6];
+    // u64 a7 = trap_frames[cpu_id]->regs[7];
     if (a0 == 0) {
         sys_putchar((char) a1);
     }
@@ -151,7 +150,7 @@ void handle_el0_syscall() {
         set_reg0(r);
     }
     else if (a0 == 2) {
-        u64 r = sys_retype(a1, a2, a3, a4, a5, a6, a7);
+        u64 r = sys_retype(a1, a2, a3, a4);
         set_reg0(r);
     }
     else if (a0 == 3) {
@@ -170,23 +169,12 @@ void handle_el0_syscall() {
     else if (a0 == 7) {
         sys_page_alloc(a1, a2, a3);
     }
-    else if (a0 == 8) {
-        u64 r = sys_get_bi();
-        set_reg0(r);
-    }
     else if (a0 == 9) {
-        u64 r = sys_get_init_disp();
-        set_reg0(r);
-    }
-    else if (a0 == 10) {
-        u64 r = sys_get_init_disp_cspace();
+        u64 r = sys_get_disp_info();
         set_reg0(r);
     }
     else if (a0 == 11) {
         sys_set_pcb_status(a1, a2);
-    }
-    else if (a0 == 12) {
-        handle_call(a1, a2);
     }
     else if (a0 == 13) {
         handle_send(a1, a2);

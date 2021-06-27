@@ -75,9 +75,12 @@ extern int dprintf_server_colour;
         writef(__VA_ARGS__);
 
     // kernel print
+    #define dprintf(...)
+    /*
     #define dprintf(...) printf("[00.%u] " COLOUR_C "Kernel | " \
         COLOUR_RESET " %s(): ", k_faketime(),  __FUNCTION__); \
         printf(__VA_ARGS__);
+    */
 #else
     #define dwritef(...)
     #define dprintf(...)

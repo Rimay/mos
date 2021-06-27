@@ -22,9 +22,7 @@ static errval_t dcopy_cap(struct capability *dest, struct capability *src)
 }
 
 
-/*
- * lookup a capability given a cnode capability
-*/
+// lookup a capability given a cnode capability
 errval_t cnode_lookup_cap(struct capability *rootcn, u64 l1index, u64 l2index, u64 level, 
                         struct capability **ret_cap, u8 rights)
 {
@@ -59,15 +57,10 @@ errval_t cnode_lookup_cap(struct capability *rootcn, u64 l1index, u64 l2index, u
 }
 
 
-/* 
- * obj_size is 0 for non-sized utils (e.g. VNodes) 
-*/
-errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes, u64 obj_size, 
-                                u64 obj_num, u8 core_id, struct cte *dest_caps)
+struct cte* caps_create_new(enum objtype type, u64 addr, struct cte *dest_caps)
 {
-    assert(type != ObjType_Null);
+    assert(type != ObjType_Null && type < ObjType_Num);
     assert(dest_caps != NULL);
-    assert(type < ObjType_Num);
 
     struct capability temp_cap;
     memzero(&temp_cap, sizeof(struct capability));
@@ -75,143 +68,143 @@ errval_t caps_create_new(enum objtype type, u64 addr, u64 bytes, u64 obj_size,
     temp_cap.rights = CAPRIGHTS_ALLRIGHTS;
 
     errval_t err = SYS_ERR_OK;
-    u64 i = 0;
+    u64 obj_size = objsize(type);
+    struct cte *ret = NULL;
 
     switch (type) {
+    // return dest_caps
+    // it's managed by bootinfo
     case ObjType_Phymem:
     {
-        for (i = 0; i < obj_num; i++) {
-            temp_cap.u.phymem.base = addr + i * obj_size;
-            temp_cap.u.phymem.bytes = bytes;
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        temp_cap.u.phymem.base = addr;
+        temp_cap.u.phymem.bytes = PHYS_MEMORY_END - addr;
+        err = dcopy_cap(&dest_caps->cap, &temp_cap);
+        assert(!err_is_fail(err));
+        ret = dest_caps;
         break;
     }
+    // return dest_caps
     case ObjType_L1cnode:
     {
-        assert(obj_size == objsize(ObjType_L1cnode));
-        for (i = 0; i < obj_num; i++) {
-            temp_cap.u.l1cnode.base = addr + i * obj_size;
-            temp_cap.u.l1cnode.bytes = bytes;
-            temp_cap.u.l1cnode.rightsmask = CAPRIGHTS_ALLRIGHTS;
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        temp_cap.u.l1cnode.base = addr;
+        temp_cap.u.l1cnode.bytes = obj_size;
+        temp_cap.u.l1cnode.cnt = 0;
+        err = dcopy_cap(&dest_caps->cap, &temp_cap);
+        assert(!err_is_fail(err));
+        ret = dest_caps;
         break;
     }
+    // return dest_caps
     case ObjType_L2cnode:
     {
-        assert(obj_size == objsize(ObjType_L2cnode));
-        for (i = 0; i < obj_num; i++) {
-            temp_cap.u.l1cnode.base = addr + i * obj_size;
-            temp_cap.u.l1cnode.bytes = bytes;
-            temp_cap.u.l1cnode.rightsmask = CAPRIGHTS_ALLRIGHTS;
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        temp_cap.u.l2cnode.base = addr;
+        temp_cap.u.l2cnode.bytes = obj_size;
+        temp_cap.u.l2cnode.cnt = 0;
+        err = dcopy_cap(&dest_caps->cap, &temp_cap);
+        assert(!err_is_fail(err));
+        ret = dest_caps;
         break;
     }
+    // dest_caps: l2cnode (pagecn / stackcn / ... )
+    // return: dest page cte
+    // TODO:    
+    //      one way alloc, cannot reuse free slot
     case ObjType_Page:
     {
-        assert(obj_size == objsize(ObjType_Page));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.page.base = addr + i * obj_size;
-            temp_cap.u.page.bytes = obj_size;
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
-        break;
-    }
-    /*
-     * todo:
-     * add bytes attribute to vnode_l0/1/2
-     */
-    case ObjType_VNode_l0:
-    {
-        assert(obj_size == objsize(ObjType_VNode_l0));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.vnode_l0.base = addr + i * obj_size;
-            errval_t err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        u64 base = dest_caps->cap.u.l2cnode.base;
+        u64 cnt = dest_caps->cap.u.l2cnode.cnt;
+        assert(cnt < L2CNODE_SLOTNUM);
 
+        struct cte* dest_cte = caps_locate_slot(base, cnt);
+        temp_cap.u.page.base = addr;
+        temp_cap.u.page.bytes = obj_size;
+        err = dcopy_cap(&dest_cte->cap, &temp_cap);
+        assert(!err_is_fail(err));
+        
+        dest_caps->cap.u.l2cnode.cnt++;
+        ret = dest_cte;
         break;
     }
-    case ObjType_VNode_l1:
+    // dest_caps: l2cnode (vnodecn)
+    // return: dest vnode cte
+    // TODO:    
+    //      one way alloc, cannot reuse free slot
+    case ObjType_VNode:
     {
-        assert(obj_size == objsize(ObjType_VNode_l1));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.vnode_l1.base = addr + i * obj_size;
-            errval_t err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
-        break;
-    }
-    case ObjType_VNode_l2:
-    {
-        assert(obj_size == objsize(ObjType_VNode_l2));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.vnode_l2.base = addr + i * obj_size;
-            errval_t err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        u64 base = dest_caps->cap.u.l2cnode.base;
+        u64 cnt = dest_caps->cap.u.l2cnode.cnt;
+        assert(cnt < L2CNODE_SLOTNUM);
 
+        struct cte* dest_cte = caps_locate_slot(base, cnt);
+        temp_cap.u.vnode.base = addr;
+        errval_t err = dcopy_cap(&dest_cte->cap, &temp_cap);
+        assert(!err_is_fail(err));
+
+        dest_caps->cap.u.l2cnode.cnt++;
+        ret = dest_cte;
         break;
     }
+    // dest_caps: l2cnode (pcbcn)
+    // return: dest pcb cte
+    // TODO:    
+    //      one way alloc, cannot reuse free slot
     case ObjType_Dispatcher:
     {
-        assert(obj_size == objsize(ObjType_Dispatcher));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.dispatcher.e = (struct Pcb *) (addr + i * obj_size);     // todo e is a pa addr
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        u64 base = dest_caps->cap.u.l2cnode.base;
+        u64 cnt = dest_caps->cap.u.l2cnode.cnt;
+        assert(cnt < L2CNODE_SLOTNUM);
+
+        struct cte* dest_cte = caps_locate_slot(base, cnt);
+        temp_cap.u.dispatcher.e = (struct Pcb *)addr;
+        errval_t err = dcopy_cap(&dest_cte->cap, &temp_cap);
+        assert(!err_is_fail(err));
+
+        dest_caps->cap.u.l2cnode.cnt++;
+        ret = dest_cte;
         break;
+
     }
+    // dest_caps: l2cnode (epcn)
+    // return: dest ep cte
+    // TODO:    
+    //      one way alloc, cannot reuse free slot
     case ObjType_Endpoint:
     {
-        assert(obj_size == objsize(ObjType_Endpoint));
-        for(i = 0; i < obj_num; i++) {
-            temp_cap.u.endpoint.head = 0;
-            temp_cap.u.endpoint.tail = 0;
-            temp_cap.u.endpoint.len = 0;
-            temp_cap.u.endpoint.state = EP_State_Idle;
-            err = dcopy_cap(&dest_caps[i].cap, &temp_cap);
-            if (err_is_fail(err)) {
-                break;
-            }
-        }
+        u64 base = dest_caps->cap.u.l2cnode.base;
+        u64 cnt = dest_caps->cap.u.l2cnode.cnt;
+        assert(cnt < L2CNODE_SLOTNUM);
+
+        struct cte* dest_cte = caps_locate_slot(base, cnt);
+        temp_cap.u.endpoint.head = 0;
+        temp_cap.u.endpoint.tail = 0;
+        temp_cap.u.endpoint.len = 0;
+        temp_cap.u.endpoint.state = EP_State_Idle;
+        err = dcopy_cap(&dest_cte->cap, &temp_cap);
+        assert(!err_is_fail(err));
+
+        dest_caps->cap.u.l2cnode.cnt++;
+        ret = dest_cte;
         break;
     }
     default:
         break;
     }
 
-    // Revert the partially initialized caps to zero
-    if (err_is_fail(err)) {
-        for (size_t j = 0; j < i; j++) {
-            memzero(&dest_caps[j], sizeof(dest_caps[j]));
-        }
-        return err;
+    return ret;
+}
+
+// return: the created cte 
+struct cte* create_cap(enum objtype type, struct cte *dest_cte, u64 is_l1cnode)
+{
+    // dprintf("dest cte0: 0x%lx\n", (u64)dest_cte);
+    u64 addr = alloc_phys_aligned(objsize(type), BASE_PAGE_SIZE);
+    if (is_l1cnode) {
+        dest_cte = (struct cte *)pa2kva(addr);
     }
-    return SYS_ERR_OK;
+    // dprintf("dest cte1: 0x%lx\n", (u64)dest_cte);
+    struct cte* ret = caps_create_new(type, addr, dest_cte);
+    // dprintf("type: %d\n", ret->cap.type);
+    return ret;
 }
 
 
@@ -223,12 +216,16 @@ void cap_init_1(u64 freemem)
     // alloc 4KB for bootinfo
     u64 addr = alloc_phys_aligned(BOOT_INFO_SIZE, BASE_PAGE_SIZE);
     bi = (struct bootinfo *)pa2kva(addr);
-    dprintf("bootinfo addr: 0x%lx\n", bi);
+    dprintf("BOOTINFO addr: 0x%lx\n", bi);
 }
+
 
 void cap_init_2()
 {
     // ccf free_mem in bootinfo, range is [phy_alloc_addr, PHYS_MEMORY_END]
-    caps_create_new(ObjType_Phymem, phy_alloc_addr, PHYS_MEMORY_END - phy_alloc_addr, \
-                     objsize(ObjType_Phymem), 1, 0, &(bi->free_mem));
+    struct cte* c = caps_create_new(ObjType_Phymem, phy_alloc_addr, &(bi->free_mem));
+
+    assert(c->cap.type == ObjType_Phymem && c->cap.u.phymem.base == phy_alloc_addr);
 }
+
+
